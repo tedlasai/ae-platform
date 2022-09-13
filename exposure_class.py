@@ -325,6 +325,19 @@ class Exposure:
         abs_weighted_errs_between_means_target = np.abs(weighted_means - self.target_intensity)
         return np.argmin(abs_weighted_errs_between_means_target, axis=1)
 
+    def adjusted_opti_inds(self,opti_inds):
+        length = len(opti_inds)
+        opti_inds_new = np.array(opti_inds)
+        if length > 1:
+            for i in range(1,length):
+                diff = opti_inds_new[i-1] - opti_inds_new[i]
+                if diff < -3:
+                    opti_inds_new[i] = opti_inds_new[i-1] + 3
+                if diff > 3:
+                    opti_inds_new[i] = opti_inds_new[i - 1] - 3
+        return opti_inds_new
+
+
     def pipeline(self):
         downsampled_ims = self.downsample_blending_rgb_channels()
         grided_ims, grided_means = self.get_grided_ims(downsampled_ims)
@@ -335,7 +348,8 @@ class Exposure:
         hists_before_ds_outlier, dropped_before_ds_outlier = self.get_hists(flatten_weighted_ims_before_ds_outlier)
         weighted_means = self.get_means(dropped, flatten_weighted_ims)
         opti_inds = self.get_optimal_img_index(weighted_means)
-        return opti_inds,weighted_means,hists,hists_before_ds_outlier
+        opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
+        return opti_inds_adjusted,opti_inds,weighted_means,hists,hists_before_ds_outlier
 
     def pipeline_local_without_grids(self):
         downsampled_ims = self.downsample_blending_rgb_channels()
@@ -348,4 +362,5 @@ class Exposure:
         hists_before_ds_outlier, dropped_before_ds_outlier = self.get_hists(flatten_weighted_ims_before_outlier)
         weighted_means = self.get_means(dropped, flatten_weighted_ims)
         opti_inds = self.get_optimal_img_index(weighted_means)
-        return opti_inds,weighted_means,hists,hists_before_ds_outlier
+        opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
+        return opti_inds_adjusted,opti_inds,weighted_means,hists,hists_before_ds_outlier

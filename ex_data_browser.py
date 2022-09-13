@@ -42,7 +42,7 @@ class Browser:
         self.frame_num = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
                           100, 100, 100, 100]  # number of frames per position
         self.stack_size = [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-                           15, 40, 15]  # number of shutter options per position
+                           40, 40, 15]  # number of shutter options per position
 
         self.auto_exposures = ["None", "Global", "Local",'Local without grids']
         self.current_auto_exposure = "None"
@@ -69,7 +69,8 @@ class Browser:
         self.img_mean_list = np.load(os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.scene[self.scene_index] + '_img_mean_' + str(self.downscale_ratio) + '.npy') / (2**self.bit_depth - 1)
         self.img_mertens = np.load(os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.scene[self.scene_index] + '_mertens_imgs_' + str(self.downscale_ratio) + '.npy')
         self.img_raw = np.load(os.path.join(os.path.dirname(__file__), 'Image_Arrays_from_dng') + self.joinPathChar + self.scene[self.scene_index] + '_show_dng_imgs' + '.npy')
-
+        # if self.stack_size[self.scene_index] == 40:
+        #     self.img_all = self.img_raw
         self.img = deepcopy(self.img_all[0])
         self.useMertens = False
         self.useRawIms = 0
@@ -421,6 +422,7 @@ class Browser:
             max_ = max(self.SCALE_LABELS)
             min_ = 0
             max_ = len(self.SCALE_LABELS)-1
+        max_=40
         self.verSlider = tk.Scale(root, activebackground='black', cursor='sb_v_double_arrow', from_=min_, to=max_, font=(self.widgetFont, self.widgetFontSize),
                                   length=self.heightToScale,
                                   command= self.scale_labels)
@@ -860,7 +862,7 @@ class Browser:
                                                 col_num_grids=self.exposureParams['col_num_grids'], row_num_grids=self.exposureParams['row_num_grids'], low_threshold=self.exposureParams['low_threshold'], low_rate=self.exposureParams['low_rate'],
                                                 high_threshold=self.exposureParams['high_threshold'], high_rate=self.exposureParams['high_rate'])
             #exposures = exposure_class.Exposure(params = self.exposureParams)
-            self.eV,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+            self.eV,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
 
         elif(self.current_auto_exposure == "Local"):
             self.clear_rects_local_wo_grids()
@@ -871,7 +873,7 @@ class Browser:
             exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"], r_percent=self.exposureParams['r_percent'], g_percent=self.exposureParams['g_percent'],
                                                 col_num_grids=self.exposureParams['col_num_grids'], row_num_grids=self.exposureParams['row_num_grids'], low_threshold=self.exposureParams['low_threshold'], low_rate=self.exposureParams['low_rate'],
                                                 high_threshold=self.exposureParams['high_threshold'], high_rate=self.exposureParams['high_rate'],local_indices=list_local)
-            self.eV,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+            self.eV,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
         elif(self.current_auto_exposure == "Local without grids"):
             self.clear_rects_local()
             list_local = self.list_local_without_grids()
@@ -885,10 +887,11 @@ class Browser:
                                                 low_rate=self.exposureParams['low_rate'],
                                                 high_threshold=self.exposureParams['high_threshold'],
                                                 high_rate=self.exposureParams['high_rate'], local_indices=list_local)
-            self.eV,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
+            self.eV,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
 
         print("CURRENT AUTO EXPOSURE", self.current_auto_exposure)
-
+        print(self.eV)
+        print(self.eV_original)
     def list_local_without_grids(self):
         list_ = []
         w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
