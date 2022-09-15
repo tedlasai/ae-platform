@@ -144,6 +144,8 @@ class Browser:
         self.clear_interested_areas_button()
         self.local_consider_outliers_checkbox()
         self.auto_exposure_select()
+        self.number_of_previous_frames_text_box()
+        self.stepsize_limit_text_box()
 
 
     def hdr_mean_button(self):
@@ -193,6 +195,20 @@ class Browser:
         self.RestButton = tk.Button(root, text='Reset', fg='#ffffff', bg='#999999', activebackground='#454545',
                                relief=tk.RAISED,padx=10, pady=5, width=16, font=(self.widgetFont, self.widgetFontSize), command=self.resetValues)
         self.RestButton.grid(row=7, column=5, sticky=tk.E)
+
+    def number_of_previous_frames_text_box(self):
+        self.number_of_previous_frames = tk.IntVar()
+        self.number_of_previous_frames.set(5)
+        tk.Label(root, text="# of previous frames").grid(row=29, column=5)
+        self.e1 = tk.Entry(root, textvariable=self.number_of_previous_frames)
+        self.e1.grid(row=30, column=5,sticky=tk.E)
+
+    def stepsize_limit_text_box(self):
+        self.stepsize_limit = tk.IntVar()
+        self.stepsize_limit.set(3)
+        tk.Label(root, text="step size limitation").grid(row=31, column=5)
+        self.e1 = tk.Entry(root, textvariable=self.stepsize_limit)
+        self.e1.grid(row=32, column=5,sticky=tk.E)
 
     def regular_video_button(self):
 
@@ -296,13 +312,11 @@ class Browser:
         self.e1.grid(row=22, column=5)
 
     def local_consider_outliers_checkbox(self):
-
         self.local_consider_outliers_check_ = tk.IntVar()
         self.c1 = tk.Checkbutton(root, text='Consider outliers at local selection', variable = self.local_consider_outliers_check_, offvalue=0, onvalue=1, command= self.switch_outlier)
         self.c1.grid(row = 23, column = 5)
 
     def high_res_checkbox(self):
-
         self.high_res_check = tk.IntVar()
         self.c1 = tk.Checkbutton(root, text='High Resolution', variable = self.high_res_check, offvalue=0, onvalue=1, command= self.switch_res)
         self.c1.grid(row = 28, column = 1)
@@ -427,7 +441,7 @@ class Browser:
                                   length=self.heightToScale,
                                   command= self.scale_labels)
 
-        print(self.verSlider.configure().keys())
+        #print(self.verSlider.configure().keys())
 
         self.verSlider.grid(row=1, column=0, rowspan=25)
 
@@ -691,10 +705,8 @@ class Browser:
                                     (sv.width, sv.height))
 
             for i in range(len(reg_vid)):
-
                 tempImg = Image.fromarray(reg_vid[i])
                 temp_img_plot = reg_vid_plot[i]
-
                 array = np.array(self.get_concat_h_blank(tempImg, temp_img_plot))
                 video.write(cv2.cvtColor(array, cv2.COLOR_RGB2BGR))
 
@@ -809,7 +821,6 @@ class Browser:
             self.col_num_grids = 8
 
     def pauseRun(self):
-        print("in pause")
         self.play = False
 
     def runVideo(self):
@@ -855,14 +866,14 @@ class Browser:
         self.check_num_grids()
         self.exposureParams = {"downsample_rate":1/25,'r_percent':0,'g_percent':1,
                                                 'col_num_grids':self.col_num_grids, 'row_num_grids':self.row_num_grids, 'low_threshold':self.low_threshold.get(), 'low_rate':float(self.low_rate.get()),
-                                                'high_threshold':self.high_threshold.get(), 'high_rate':float(self.high_rate.get())}
+                                                'high_threshold':self.high_threshold.get(), 'high_rate':float(self.high_rate.get()),'stepsize':self.stepsize_limit.get(),"number_of_previous_frames":self.number_of_previous_frames.get()}
         if(self.current_auto_exposure == "Global"):
             self.clear_rects()
             exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"], r_percent=self.exposureParams['r_percent'], g_percent=self.exposureParams['g_percent'],
                                                 col_num_grids=self.exposureParams['col_num_grids'], row_num_grids=self.exposureParams['row_num_grids'], low_threshold=self.exposureParams['low_threshold'], low_rate=self.exposureParams['low_rate'],
-                                                high_threshold=self.exposureParams['high_threshold'], high_rate=self.exposureParams['high_rate'])
+                                                high_threshold=self.exposureParams['high_threshold'], high_rate=self.exposureParams['high_rate'],stepsize=self.exposureParams['stepsize'],number_of_previous_frames=self.exposureParams['number_of_previous_frames'])
             #exposures = exposure_class.Exposure(params = self.exposureParams)
-            self.eV,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+            self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
 
         elif(self.current_auto_exposure == "Local"):
             self.clear_rects_local_wo_grids()
@@ -873,7 +884,7 @@ class Browser:
             exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"], r_percent=self.exposureParams['r_percent'], g_percent=self.exposureParams['g_percent'],
                                                 col_num_grids=self.exposureParams['col_num_grids'], row_num_grids=self.exposureParams['row_num_grids'], low_threshold=self.exposureParams['low_threshold'], low_rate=self.exposureParams['low_rate'],
                                                 high_threshold=self.exposureParams['high_threshold'], high_rate=self.exposureParams['high_rate'],local_indices=list_local)
-            self.eV,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+            self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
         elif(self.current_auto_exposure == "Local without grids"):
             self.clear_rects_local()
             list_local = self.list_local_without_grids()
@@ -887,10 +898,14 @@ class Browser:
                                                 low_rate=self.exposureParams['low_rate'],
                                                 high_threshold=self.exposureParams['high_threshold'],
                                                 high_rate=self.exposureParams['high_rate'], local_indices=list_local)
-            self.eV,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
+            self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
 
         print("CURRENT AUTO EXPOSURE", self.current_auto_exposure)
+        print("adjusted_by_previous_n_frames")
         print(self.eV)
+        print("adjusted_by_previous_1_frame")
+        print(self.eV_adjusted_v1)
+        print("original_output")
         print(self.eV_original)
     def list_local_without_grids(self):
         list_ = []
@@ -1061,7 +1076,6 @@ class Browser:
         self.on_button_release(event)
 
     def on_button_press(self, event):
-        print("herehere")
         self.start_x = self.canvas.canvasx(event.x)
         self.start_y = self.canvas.canvasy(event.y)
         if self.current_auto_exposure == "Local without grids":
@@ -1076,18 +1090,18 @@ class Browser:
             curY = self.canvas.canvasy(event.y)
 
             w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
-            print('w: '+str(w))
-            print('h: '+str(h))
-            print(event.x)
-            print(event.y)
+            # print('w: '+str(w))
+            # print('h: '+str(h))
+            # print(event.x)
+            # print(event.y)
 
             # expand rectangle as you drag the mouse
 
             self.canvas.coords(self.rect, self.start_x, self.start_y, curX, curY)
             self.curX = curX
             self.curY = curY
-            print("curx: "+ str(curX))
-            print("cury: "+ str(curY))
+            # print("curx: "+ str(curX))
+            # print("cury: "+ str(curY))
 
     def on_button_release(self, event):
         print("rect: "+str(self.rect))

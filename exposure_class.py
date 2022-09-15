@@ -4,7 +4,7 @@ import numpy as np
 class Exposure:
     def __init__(self, input_images, downsample_rate=1 / 64, r_percent=0, g_percent=1, col_num_grids=8, row_num_grids=8,
                  target_intensity=0.19, high_threshold=1, low_threshold=0, high_rate=0.2, low_rate=0.2,
-                 local_indices=[], num_hist_bins=100, local_with_downsampled_outliers=False):
+                 local_indices=[], num_hist_bins=100, local_with_downsampled_outliers=False,stepsize=3,number_of_previous_frames=5):
         self.absolute_bit = 2**8  # max bit number of the raw image
         self.input_images = input_images
         self.downsample_rate = downsample_rate  # down sample rate of the original images, preferred value is as # 1/perfectsquare (i.e 1/36, 1/81)
@@ -30,7 +30,8 @@ class Exposure:
         self.target_intensity = target_intensity
         self.num_hist_bins = num_hist_bins
         self.local_with_downsampled_outliers = local_with_downsampled_outliers  # a flag indicates if it should downsample the outlier areas when such area is the local interested area or not.("True" means it should downsample the outliers)
-
+        self.stepsize = stepsize
+        self.number_of_previous_frames = number_of_previous_frames
     # helper function to add two 4d arrays those might have different shape in 3red and 4th dimrntions(trim thr larger one)
     def add_two_4d_arrays(self, x, y):
         c_x = x.shape[2]
@@ -325,18 +326,34 @@ class Exposure:
         abs_weighted_errs_between_means_target = np.abs(weighted_means - self.target_intensity)
         return np.argmin(abs_weighted_errs_between_means_target, axis=1)
 
-    def adjusted_opti_inds(self,opti_inds):
+    def adjusted_opti_inds(self,opti_inds,stepsize=3):
         length = len(opti_inds)
         opti_inds_new = np.array(opti_inds)
         if length > 1:
             for i in range(1,length):
                 diff = opti_inds_new[i-1] - opti_inds_new[i]
-                if diff < -3:
-                    opti_inds_new[i] = opti_inds_new[i-1] + 3
-                if diff > 3:
-                    opti_inds_new[i] = opti_inds_new[i - 1] - 3
+                if diff < -stepsize:
+                    opti_inds_new[i] = opti_inds_new[i-1] + stepsize
+                if diff > stepsize:
+                    opti_inds_new[i] = opti_inds_new[i - 1] - stepsize
         return opti_inds_new
 
+    def adjusted_opti_inds_v2_by_average_of_previous_n_frames(self,opti_inds):
+        length = len(opti_inds)
+        opti_inds_new = np.array(opti_inds)
+        if length > 1:
+            i = 1
+            while i < length:
+                start_index = max(0, i - self.number_of_previous_frames)
+                print("start_ind: "+str(start_index))
+                average_of_previous_n_frames = np.mean(opti_inds_new[start_index:i])
+                diff = average_of_previous_n_frames - opti_inds_new[i]
+                if diff < -self.stepsize:
+                    opti_inds_new[i] = round(average_of_previous_n_frames + self.stepsize)
+                if diff > self.stepsize:
+                    opti_inds_new[i] = round(average_of_previous_n_frames - self.stepsize)
+                i += 1
+        return opti_inds_new
 
     def pipeline(self):
         downsampled_ims = self.downsample_blending_rgb_channels()
@@ -349,7 +366,8 @@ class Exposure:
         weighted_means = self.get_means(dropped, flatten_weighted_ims)
         opti_inds = self.get_optimal_img_index(weighted_means)
         opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
-        return opti_inds_adjusted,opti_inds,weighted_means,hists,hists_before_ds_outlier
+        opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
+        return opti_inds_adjusted_previous_n_frames,opti_inds_adjusted,opti_inds,weighted_means,hists,hists_before_ds_outlier
 
     def pipeline_local_without_grids(self):
         downsampled_ims = self.downsample_blending_rgb_channels()
@@ -363,4 +381,5 @@ class Exposure:
         weighted_means = self.get_means(dropped, flatten_weighted_ims)
         opti_inds = self.get_optimal_img_index(weighted_means)
         opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
-        return opti_inds_adjusted,opti_inds,weighted_means,hists,hists_before_ds_outlier
+        opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
+        return opti_inds_adjusted_previous_n_frames,opti_inds_adjusted,opti_inds,weighted_means,hists,hists_before_ds_outlier
