@@ -4,7 +4,7 @@ import time
 import cv2
 import numpy as np
 import rawpy
-from simple_camera_pipeline.python.pipeline import run_pipeline_v2,get_metadata
+from simple_camera_pipeline_sept.python.pipeline import run_pipeline_v2,get_metadata
 
 SCALE_LABELS = [15,8,6,4,2,1,1/2,1/4,1/8,1/15,1/30,1/60,1/125,1/250,1/500]
 NEW_SCALES = [15,13,10,8,6,5,4,3.2,2.5,2,1.6,1.3,1,0.8,0.6,0.5,0.4,0.3,1/4,1/5,1/6,1/8,1/10,1/13,1/15,1/20,1/25,1/30,1/40,1/50,1/60,1/80,1/100,1/125,1/160,1/200,1/250,1/320,1/400,1/500]
@@ -264,6 +264,6 @@ else:
 
             k += 1
     print(means)
-    np.save(save_loc + joinPathChar + 'Scene' + scene_num + '_ds_raw_imgs', np.asarray(list_of_ims))
-    np.save(save_loc_show + joinPathChar + 'Scene' + scene_num + '_show_dng_imgs', np.asarray(list_of_ims_show))
+    #np.save(save_loc + joinPathChar + 'Scene' + scene_num + '_ds_raw_imgs', np.asarray(list_of_ims))
+    #np.save(save_loc_show + joinPathChar + 'Scene' + scene_num + '_show_dng_imgs', np.asarray(list_of_ims_show))
 print("running time: {:.3f}".format(time.time()-start_time))

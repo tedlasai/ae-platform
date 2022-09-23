@@ -712,7 +712,7 @@ class Browser:
 
             video.release()
 
-        elif self.res_check == 0 and self.current_auto_exposure == "Global" or self.current_auto_exposure == 'Local':
+        elif self.res_check == 0 and self.current_auto_exposure != "None":
             if not len(self.eV) == 100:
                 return
 
@@ -720,18 +720,20 @@ class Browser:
                 self.temp_img_ind = int(i) * self.stack_size[self.scene_index] + self.eV[i]
                 self.check = False
                 self.updatePlot()
-                reg_vid_plot.append(self.tempImg_2)
+                #reg_vid_plot.append(self.tempImg_2)
 
-                img = deepcopy(self.img_all[self.temp_img_ind])
+                #img = deepcopy(self.img_all[self.temp_img_ind])
+                img = deepcopy(self.img_raw[i][self.eV[i]])
                 reg_vid.append(img)
 
             m1 = Image.fromarray(reg_vid[0])
-            m2 = reg_vid_plot[0]
-            sv = self.get_concat_h_blank(m1, m2)
+            #m2 = reg_vid_plot[0]
+            #sv = self.get_concat_h_blank(m1, m2)
+            sv = m1
 
             self.check_fps()
 
-            fold_name = self.scene[self.scene_index] + "_0.12_Ex_" + self.current_auto_exposure + "_FPS_" + str(
+            fold_name = self.scene[self.scene_index] + "_dng_pipeline_" + self.current_auto_exposure + "_FPS_" + str(
                 self.video_fps)
             folderStore = os.path.join(os.path.dirname(__file__), 'Regular_Videos')
             os.makedirs(folderStore, exist_ok=True)
@@ -746,9 +748,10 @@ class Browser:
 
             for i in range(len(reg_vid)):
                 tempImg = Image.fromarray(reg_vid[i])
-                temp_img_plot = reg_vid_plot[i]
+                #temp_img_plot = reg_vid_plot[i]
 
-                array = np.array(self.get_concat_h_blank(tempImg, temp_img_plot))
+                #array = np.array(self.get_concat_h_blank(tempImg, temp_img_plot))
+                array = np.array(tempImg)
                 video.write(cv2.cvtColor(array, cv2.COLOR_RGB2BGR))
 
             video.release()
