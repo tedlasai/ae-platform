@@ -26,6 +26,7 @@ class Browser:
     def __init__(self, root):
         super().__init__()
 
+
         self.folders = "E:\Final"     #link to directory containing all the dataset image folders
 
         self.widgetFont = 'Arial'
@@ -33,18 +34,18 @@ class Browser:
 
         # self.scene = ['Scene101', 'Scene102', 'Scene103', 'Scene1', 'Scene2', 'Scene3', 'Scene4', 'Scene5', 'Scene6',
         #               'Scene7', 'Scene8', 'Scene9', 'Scene10', 'Scene11', 'Scene12', 'Scene13', 'Scene14', 'Scene15', 'Scene16', 'Scene17', 'Scene18']
-        self.frame_num = [90, 65, 15, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]  # number of frames per position
+        #self.frame_num = [90, 65, 15, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]  # number of frames per position
         #self.stack_size = [12, 47, 28, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15]  # number of shutter options per position
 
         self.scene = ['Scene1', 'Scene2', 'Scene3', 'Scene4', 'Scene5', 'Scene6',
                       'Scene7', 'Scene8', 'Scene9', 'Scene10', 'Scene11', 'Scene12', 'Scene13', 'Scene14', 'Scene15',
-                      'Scene16', 'Scene17', 'Scene18', 'Scene19', 'Scene20']
+                      'Scene16', 'Scene17', 'Scene18', 'Scene19', 'Scene20', 'Scene21']
         self.frame_num = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                          100, 100, 100, 100]  # number of frames per position
+                          100, 100, 100, 100, 100]  # number of frames per position
         self.stack_size = [40, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-                           40, 40, 15]  # number of shutter options per position
+                           40, 40, 40, 40]  # number of shutter options per position
 
-        self.auto_exposures = ["None", "Global", "Local",'Local without grids']
+        self.auto_exposures = ["None", "Global", "Local",'Local without grids','Local on moving objects']
         self.current_auto_exposure = "None"
 
         self.scene_index = 0
@@ -92,10 +93,18 @@ class Browser:
         self.rectangles = []  # the coordinates of the rectangles
         self.current_rects_wo_grids = []
         self.rects_without_grids = []  # the coordinates of the rectangles @ local without grids
+        self.rects_without_grids_moving_objests = {} # key: frame number, value: list of rect ids
+        self.moving_rectids = []
+        self.the_moving_rect = None
+        self.the_scrolling_rect = None
         #self.canvas.bind('<Button-1>', self.canvas_click)
         self.canvas.bind('<ButtonPress-1>',self.on_button_press)
         self.canvas.bind('<B1-Motion>', self.on_move_press)
         self.canvas.bind('<ButtonRelease-1>', self.on_button_release)
+        self.canvas.bind("<Button-3>",self.right_click)
+        self.canvas.bind("<MouseWheel>",self.zoomer)
+        self.canvas.bind("<Button-4>", self.zoomerP)
+        self.canvas.bind("<Button-5>", self.zoomerM)
         #some defaults
         self.col_num_grids = 8
         self.row_num_grids = 8
@@ -848,14 +857,19 @@ class Browser:
             #                                     high_threshold=self.exposureParams['high_threshold'], high_rate=self.exposureParams['high_rate'])
             # self.eV,weighted_means,hists,hists_before_ds_outlier = exposures.pipeline()
 
-            self.img_all = np.load(os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.defScene.get() + '_imgs_' + str(self.downscale_ratio) + '.npy')
-            self.img_mean_list = np.load(os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.defScene.get() + '_img_mean_' + str(self.downscale_ratio) + '.npy') / (2 ** self.bit_depth - 1)
+           # self.img_mean_list = np.load(os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.defScene.get() + '_img_mean_' + str(self.downscale_ratio) + '.npy') / (2 ** self.bit_depth - 1)
 
             self.img_mertens = np.load(os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.scene[self.scene_index] + '_mertens_imgs_' + str(self.downscale_ratio) + '.npy')
 
             self.img_raw = np.load(
                 os.path.join(os.path.dirname(__file__), 'Image_Arrays_from_dng') + self.joinPathChar + self.scene[
                     self.scene_index] + '_show_dng_imgs' + '.npy')
+            if self.scene_index < 20:
+                self.img_all = np.load(os.path.join(os.path.dirname(__file__),
+                                                'Image_Arrays') + self.joinPathChar + self.defScene.get() + '_imgs_' + str(
+                    self.downscale_ratio) + '.npy')
+            else:
+                self.img_all = self.img_raw
 
             self.resetValues()
 
@@ -903,6 +917,21 @@ class Browser:
                                                 high_rate=self.exposureParams['high_rate'], local_indices=list_local)
             self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
 
+        elif(self.current_auto_exposure == "Local on moving objects"):
+            self.clear_rects_local()
+            list_local = self.list_local_without_grids_moving_objects()
+
+            exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"],
+                                                r_percent=self.exposureParams['r_percent'],
+                                                g_percent=self.exposureParams['g_percent'],
+                                                col_num_grids=self.exposureParams['col_num_grids'],
+                                                row_num_grids=self.exposureParams['row_num_grids'],
+                                                low_threshold=self.exposureParams['low_threshold'],
+                                                low_rate=self.exposureParams['low_rate'],
+                                                high_threshold=self.exposureParams['high_threshold'],
+                                                high_rate=self.exposureParams['high_rate'], local_indices=list_local)
+            self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
+
         print("CURRENT AUTO EXPOSURE", self.current_auto_exposure)
         print("adjusted_by_previous_n_frames")
         print(self.eV)
@@ -915,6 +944,50 @@ class Browser:
         w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
         for (y_start,x_strat,y_end,x_end) in self.rects_without_grids:
             list_.append([y_start/h,x_strat/w,y_end/h,x_end/w])
+        return list_
+
+    # since the list is small 100 * n * 4, n is usually < 3, and the n varies, list is used rather than numpy array
+    def list_local_without_grids_moving_objects(self):
+        list_ = []
+        w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
+        number_of_frames = self.frame_num[self.scene_index]
+        keys = self.rects_without_grids_moving_objests.keys()
+        keys = sorted(keys)
+        if len(keys) > 0:
+            list_rectid_temp = self.rects_without_grids_moving_objests[keys[0]]
+            list_coordi_temp = []
+            for id in list_rectid_temp:
+                coordi = self.canvas.coords(id)
+                list_coordi_temp.append([coordi[1]/h,coordi[0]/w,coordi[3]/h,coordi[2]/w])
+            for i in range(keys[0] + 1):
+                list_.append(list_coordi_temp.copy())
+            for i in range(1, len(keys)):
+                list_pre = list_coordi_temp.copy()
+                list_coordi_temp = []
+                list_rectid_temp = self.rects_without_grids_moving_objests[keys[i]]
+                for id in list_rectid_temp:
+                    coordi = self.canvas.coords(id)
+                    list_coordi_temp.append([coordi[1]/h, coordi[0]/w, coordi[3]/h, coordi[2]/w])
+                gap = keys[i] - keys[i-1]
+                for j in range(1,gap):
+                    #assume the number of rects are the same. if not, follow the less one, and assume the first "size" of rects are the cooresponding ones
+                    size = min(len(list_pre),len(list_coordi_temp))
+                    list_coordi_temp_gap = []
+                    for k in range(size):
+                        a1,b1,c1,d1 = list_pre[k]
+                        a2,b2,c2,d2 = list_coordi_temp[k]
+                        a = a1 + (a2 - a1) * j / gap
+                        b = b1 + (b2 - b1) * j / gap
+                        c = c1 + (c2 - c1) * j / gap
+                        d = d1 + (d2 - d1) * j / gap
+                        list_coordi_temp_gap.append([a,b,c,d])
+                    list_.append(list_coordi_temp_gap.copy())
+                list_.append(list_coordi_temp.copy())
+            for i in range(keys[-1]+1,self.frame_num[self.scene_index]):
+                list_.append(list_coordi_temp.copy())
+                # for (y_start,x_strat,y_end,x_end) in self.rects_without_grids_moving_objests[i]:
+                #     list__.append([y_start/h,x_strat/w,y_end/h,x_end/w])
+                # list_.append(list__)
         return list_
 
 
@@ -1034,11 +1107,11 @@ class Browser:
         self.current_rects_wo_grids = []
 
 
-    def mouse_events(self,event):
-        if self.current_auto_exposure == "Local":
-            self.canvas_click(event)
-        if self.current_auto_exposure == "Local without grids":
-            self.local_wo_grids(event)
+    # def mouse_events(self,event):
+    #     if self.current_auto_exposure == "Local":
+    #         self.canvas_click(event)
+    #     if self.current_auto_exposure == "Local without grids":
+    #         self.local_wo_grids(event)
 
 
     def canvas_click(self, event):
@@ -1086,6 +1159,21 @@ class Browser:
             # create rectangle if not yet exist
             self.rect = self.canvas.create_rectangle(self.x, self.y, 1, 1, outline='red')
             self.current_rects_wo_grids.append(self.rect)
+        if self.current_auto_exposure == "Local on moving objects":
+            self.curX = self.start_x
+            self.curY = self.start_y
+            print("here")
+            for i, r in enumerate(self.moving_rectids):
+                print("herehere")
+                r_start_x,r_start_y, r_end_x, r_end_y = self.canvas.coords(r)
+                if r_start_x <= self.start_x <= r_end_x and r_start_y <= self.start_y <= r_end_y:
+                    self.the_moving_rect = r
+                    self.rect_ind = i
+                    break
+            # create rectangle if not yet exist
+            if not self.the_moving_rect:
+                rect = self.canvas.create_rectangle(self.x, self.y, 1, 1, outline='indigo')
+                self.moving_rectids.append(rect)
 
     def on_move_press(self, event):
         if self.current_auto_exposure == "Local without grids":
@@ -1105,6 +1193,22 @@ class Browser:
             self.curY = curY
             # print("curx: "+ str(curX))
             # print("cury: "+ str(curY))
+        if self.current_auto_exposure == "Local on moving objects":
+            curX = self.canvas.canvasx(event.x)
+            curY = self.canvas.canvasy(event.y)
+
+            # expand rectangle as you drag the mouse
+            if self.the_moving_rect == None:
+                self.canvas.coords(self.moving_rectids[-1], self.start_x, self.start_y, curX, curY)
+            else:
+                self.x_offset = curX - self.curX
+                self.y_offset = curY - self.curY
+                # old_coordinate = self.canvas.coords(self.the_moving_rect)
+                # x = old_coordinate[1] + self.x_offset
+                # y = old_coordinate[0] + self.y_offset
+                self.canvas.move(self.the_moving_rect, self.x_offset, self.y_offset)
+            self.curX = curX
+            self.curY = curY
 
     def on_button_release(self, event):
         print("rect: "+str(self.rect))
@@ -1123,6 +1227,74 @@ class Browser:
             self.rectangles.append(rect) #making this array to allow us to be flexible in the future
             self.current_rects.append(self.draw_rectangle(rect[0], rect[1], "green"))
             self.setAutoExposure()
+        if self.current_auto_exposure == "Local on moving objects":
+            print("rect: " + str(self.moving_rectids[-1]))
+            print("start_x: " + str(self.start_x))
+            print("start_y: " + str(self.start_y))
+            print("cur_x: " + str(self.curX))
+            print("cur_y: " + str(self.curY))
+            if self.the_moving_rect != None:
+                # self.x_offset = self.curX - self.start_x
+                # self.y_offset = self.curY - self.start_y
+                # self.canvas.move(self.the_moving_rect,self.x_offset,self.y_offset)
+                # old_coordinate = self.canvas.coords(self.the_moving_rect)
+                # print(old_coordinate)
+                # self.rects[self.rect_ind] = [old_coordinate[1], old_coordinate[0], old_coordinate[3], old_coordinate[2]]
+                self.the_moving_rect = None
+                self.x_offset = 0
+                self.y_offset = 0
+                self.rect_ind = None
+
+    def right_click(self,event):
+        self.start_x = self.canvas.canvasx(event.x)
+        self.start_y = self.canvas.canvasy(event.y)
+        self.curX = self.start_x
+        self.curY = self.start_y
+        print("here")
+        for i,r in enumerate(self.moving_rectids):
+            print("herehere")
+            r_start_x, r_start_y, r_end_x, r_end_y = self.canvas.coords(r)
+            #r_start_y ,r_start_x,r_end_y,r_end_x   = self.rects[i]
+            if r_start_x <= self.start_x <= r_end_x and r_start_y <= self.start_y <= r_end_y:
+                self.the_scrolling_rect = r
+                #self.the_rect_ind = i
+                break
+
+    def zoomerP(self,event):
+        if self.the_scrolling_rect:
+            old_coordinate = self.canvas.coords(self.the_scrolling_rect)
+            factor = 1.1
+            self.canvas.coords(self.the_scrolling_rect, old_coordinate[0]*0.9,old_coordinate[1]*0.9,old_coordinate[2]*1.1,old_coordinate[3]*1.1)
+            #self.canvas.configure(scrollregion = self.canvas.bbox("all"))
+    def zoomerM(self,event):
+        print(self.the_scrolling_rect)
+        if self.the_scrolling_rect:
+            old_coordinate = self.canvas.coords(self.the_scrolling_rect)
+            print(old_coordinate)
+            factor = 0.9
+            self.canvas.coords(self.the_scrolling_rect, old_coordinate[0] * 1.1, old_coordinate[1] * 1.1,
+                               old_coordinate[2] * 0.9, old_coordinate[3] * 0.9)
+
+        #self.canvas.coords(self.the_moving_rect, event.x, event.y, 0.9, 0.9)
+        #self.canvas.configure(scrollregion = self.canvas.bbox("all"))
+
+    def zoomer(self,event):
+        print("in zoomer")
+        if self.the_scrolling_rect:
+            print("here")
+            if (event.delta > 0):
+                old_coordinate = self.canvas.coords(self.the_scrolling_rect)
+                factor = 1.1
+                self.canvas.coords(self.the_scrolling_rect, old_coordinate[0] * 0.9, old_coordinate[1] * 0.9,
+                                   old_coordinate[2] * 1.1, old_coordinate[3] * 1.1)
+            elif (event.delta < 0):
+                old_coordinate = self.canvas.coords(self.the_scrolling_rect)
+                print(old_coordinate)
+                factor = 0.9
+                self.canvas.coords(self.the_scrolling_rect, old_coordinate[0] * 1.1, old_coordinate[1] * 1.1,
+                                   old_coordinate[2] * 0.9, old_coordinate[3] * 0.9)
+
+
 
     def updateSlider(self, scale_value):
         if(self.current_auto_exposure != "None"):

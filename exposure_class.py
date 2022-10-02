@@ -257,6 +257,24 @@ class Exposure:
                 flatten_weighted_ims[i][j][start:end] = flatten_weighted_im_per_grid
         return flatten_weighted_ims
 
+    def get_flatten_weighted_imgs_local_wo_grids_moving_object(self, ims):
+        flatten_weighted_ims = np.ones((self.num_frame, self.num_ims_per_frame, self.h , self.w)) * (-0.01)
+        for i in range(self.num_frame):
+            for (y_start,x_start,y_end,x_end) in self.local_indices[i]:
+                y_start = int(y_start * self.h)
+                x_start = int(x_start * self.w)
+                y_end = int(y_end * self.h)
+                x_end = int(x_end * self.w)
+
+
+                flatten_weighted_ims[i,:,y_start:y_end+1,x_start:x_end+1] = ims[i,:,y_start:y_end+1,x_start:x_end+1]
+        flatten_weighted_ims = flatten_weighted_ims.reshape((self.num_frame, self.num_ims_per_frame, self.h*self.w))
+        flatten_weighted_ims_before_outlier = np.array(flatten_weighted_ims)
+        flatten_weighted_ims[flatten_weighted_ims < self.low_threshold] = -0.01
+        flatten_weighted_ims[flatten_weighted_ims > self.high_threshold] = -0.01
+
+        return flatten_weighted_ims,flatten_weighted_ims_before_outlier
+
     def get_flatten_weighted_imgs_local_wo_grids(self, ims):
         flatten_weighted_ims = np.ones((self.num_frame, self.num_ims_per_frame, self.h , self.w)) * (-0.01)
         for (y_start,x_start,y_end,x_end) in self.local_indices:
@@ -383,3 +401,19 @@ class Exposure:
         opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
         return opti_inds_adjusted_previous_n_frames,opti_inds_adjusted,opti_inds,weighted_means,hists,hists_before_ds_outlier
+
+    def pipeline_local_without_grids_moving_object(self):
+        downsampled_ims = self.downsample_blending_rgb_channels()
+        # grided_ims, grided_means = self.get_grided_ims(downsampled_ims)
+        # weights,weights_before_ds_outlier = self.get_grids_weight_matrix(grided_means)
+        flatten_weighted_ims, flatten_weighted_ims_before_outlier = self.get_flatten_weighted_imgs_local_wo_grids_moving_object(
+            downsampled_ims)
+
+        # flatten_weighted_ims_before_ds_outlier = self.get_flatten_weighted_imgs(weights_before_ds_outlier, grided_ims)
+        hists, dropped = self.get_hists(flatten_weighted_ims)
+        hists_before_ds_outlier, dropped_before_ds_outlier = self.get_hists(flatten_weighted_ims_before_outlier)
+        weighted_means = self.get_means(dropped, flatten_weighted_ims)
+        opti_inds = self.get_optimal_img_index(weighted_means)
+        opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
+        opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
+        return opti_inds_adjusted_previous_n_frames, opti_inds_adjusted, opti_inds, weighted_means, hists, hists_before_ds_outlier

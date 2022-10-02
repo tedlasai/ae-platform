@@ -174,7 +174,7 @@ def save_im(raw_bayer,im_path):
 
 start_time = time.time()
 
-read_path = 'D:/Final_dng/Scene18_Aluminium_dng/'
+read_path = 'E:/Scene21_ReflectiveHoleSpotting_dng/'
 scene_num = '18'
 
 save_loc = os.path.join(os.path.dirname(__file__), 'Image_Arrays_exposure_separate')
@@ -200,9 +200,9 @@ else:
 #     # one_stack_isos_temp_list = []
 #     # one_stack_shutter_speeds_temp_list = []
     count = 0
-    count = 80
+    #count = 80
     i = 0
-    i = 30
+    #i = 30
     j = i+1
     k = 0
     image_path1 = images[i]
