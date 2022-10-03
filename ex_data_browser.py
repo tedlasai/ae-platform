@@ -17,25 +17,25 @@ from test_pipline import local_interested_grids_generater
 
 mp.rcParams.update({'axes.titlesize': 14, 'font.size': 11, 'font.family': 'arial'})
 
-#Tkinter Window
-root=tk.Tk()
-root.geometry('1600x900'), root.title('Data Browser') #1900x1000+5+5
+# Tkinter Window
+root = tk.Tk()
+root.geometry('1600x900'), root.title('Data Browser')  # 1900x1000+5+5
+
 
 class Browser:
 
     def __init__(self, root):
         super().__init__()
 
-
-        self.folders = "E:\Final"     #link to directory containing all the dataset image folders
+        self.folders = "E:\Final"  # link to directory containing all the dataset image folders
 
         self.widgetFont = 'Arial'
         self.widgetFontSize = 12
 
         # self.scene = ['Scene101', 'Scene102', 'Scene103', 'Scene1', 'Scene2', 'Scene3', 'Scene4', 'Scene5', 'Scene6',
         #               'Scene7', 'Scene8', 'Scene9', 'Scene10', 'Scene11', 'Scene12', 'Scene13', 'Scene14', 'Scene15', 'Scene16', 'Scene17', 'Scene18']
-        #self.frame_num = [90, 65, 15, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]  # number of frames per position
-        #self.stack_size = [12, 47, 28, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15]  # number of shutter options per position
+        # self.frame_num = [90, 65, 15, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]  # number of frames per position
+        # self.stack_size = [12, 47, 28, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15]  # number of shutter options per position
 
         self.scene = ['Scene1', 'Scene2', 'Scene3', 'Scene4', 'Scene5', 'Scene6',
                       'Scene7', 'Scene8', 'Scene9', 'Scene10', 'Scene11', 'Scene12', 'Scene13', 'Scene14', 'Scene15',
@@ -45,7 +45,7 @@ class Browser:
         self.stack_size = [40, 15, 15, 15, 15, 15, 15, 15, 15, 40, 15, 15, 15, 15, 15, 15, 15,
                            40, 40, 40, 40]  # number of shutter options per position
         self.eV = []
-        self.auto_exposures = ["None", "Global", "Local",'Local without grids','Local on moving objects']
+        self.auto_exposures = ["None", "Global", "Local", 'Local without grids', 'Local on moving objects']
         self.current_auto_exposure = "None"
 
         self.scene_index = 0
@@ -64,12 +64,17 @@ class Browser:
         self.widPercent = (self.widthToScale / float(self.imgSize[1]))
         self.heightToScale = int(float(self.imgSize[0]) * float(self.widPercent))
 
-
-
-        self.img_all = np.load(os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.scene[self.scene_index] + '_imgs_' + str(self.downscale_ratio) + '.npy')
-        self.img_mean_list = np.load(os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.scene[self.scene_index] + '_img_mean_' + str(self.downscale_ratio) + '.npy') / (2**self.bit_depth - 1)
-        self.img_mertens = np.load(os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.scene[self.scene_index] + '_mertens_imgs_' + str(self.downscale_ratio) + '.npy')
-        self.img_raw = np.load(os.path.join(os.path.dirname(__file__), 'Image_Arrays_from_dng') + self.joinPathChar + self.scene[self.scene_index] + '_show_dng_imgs' + '.npy')
+        self.img_all = np.load(os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.scene[
+            self.scene_index] + '_imgs_' + str(self.downscale_ratio) + '.npy')
+        self.img_mean_list = np.load(
+            os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.scene[
+                self.scene_index] + '_img_mean_' + str(self.downscale_ratio) + '.npy') / (2 ** self.bit_depth - 1)
+        self.img_mertens = np.load(
+            os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.scene[
+                self.scene_index] + '_mertens_imgs_' + str(self.downscale_ratio) + '.npy')
+        self.img_raw = np.load(
+            os.path.join(os.path.dirname(__file__), 'Image_Arrays_from_dng') + self.joinPathChar + self.scene[
+                self.scene_index] + '_show_dng_imgs' + '.npy')
         # if self.stack_size[self.scene_index] == 40:
         #     self.img_all = self.img_raw
         self.img = deepcopy(self.img_all[0])
@@ -86,26 +91,26 @@ class Browser:
         self.photo = ImageTk.PhotoImage(Image.fromarray(self.img))
 
         self.canvas = tk.Canvas(root, cursor="cross", width=self.photo.width(), height=self.photo.height(),
-                           borderwidth=0, highlightthickness=0)
+                                borderwidth=0, highlightthickness=0)
         self.canvas.grid(row=1, column=1, columnspan=2, rowspan=27, padx=0, pady=0, sticky=tk.NW)
         self.canvas_img = self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
         self.current_rects = []  # the rectangles drawn in canvas
         self.rectangles = []  # the coordinates of the rectangles
         self.current_rects_wo_grids = []
         self.rects_without_grids = []  # the coordinates of the rectangles @ local without grids
-        self.rects_without_grids_moving_objests = {} # key: frame number, value: list of rect ids
+        self.rects_without_grids_moving_objests = {}  # key: frame number, value: list of rect ids
         self.moving_rectids = []
         self.the_moving_rect = None
         self.the_scrolling_rect = None
-        #self.canvas.bind('<Button-1>', self.canvas_click)
-        self.canvas.bind('<ButtonPress-1>',self.on_button_press)
+        # self.canvas.bind('<Button-1>', self.canvas_click)
+        self.canvas.bind('<ButtonPress-1>', self.on_button_press)
         self.canvas.bind('<B1-Motion>', self.on_move_press)
         self.canvas.bind('<ButtonRelease-1>', self.on_button_release)
-        self.canvas.bind("<Button-3>",self.right_click)
-        self.canvas.bind("<MouseWheel>",self.zoomer)
+        self.canvas.bind("<Button-3>", self.right_click)
+        self.canvas.bind("<MouseWheel>", self.zoomer)
         self.canvas.bind("<Button-4>", self.zoomerP)
         self.canvas.bind("<Button-5>", self.zoomerM)
-        #some defaults
+        # some defaults
         self.col_num_grids = 8
         self.row_num_grids = 8
         self.rowGridSelect = 0
@@ -128,10 +133,10 @@ class Browser:
 
     def init_functions(self):
 
-        self.hdr_mean_button()
-        self.hdr_median_button()
-        self.hdr_mertens_button()
-        self.hdr_abdullah_button()
+        # self.hdr_mean_button()
+        # self.hdr_median_button()
+        # self.hdr_mertens_button()
+        # self.hdr_abdullah_button()
         self.hdr_run_button()
         self.hdr_pause_button()
         self.hdr_reset_button()
@@ -157,12 +162,31 @@ class Browser:
         self.stepsize_limit_text_box()
         self.save_interested_moving_objects_button()
         self.make_global_videos_button()
+        self.make_local_videos_button()
+        self.local_interested_name_text_box()
+
+    def local_interested_name_text_box(self):
+        self.local_interested_name = tk.StringVar()
+        self.local_interested_name.set("")
+        tk.Label(root, text="Name of Interested").grid(row=10, column=5)
+        self.e1 = tk.Entry(root, textvariable=self.local_interested_name)
+        self.e1.grid(row=11, column=5, sticky=tk.E)
 
     def make_global_videos_button(self):
-        self.makeGlobalVideosButton = tk.Button(root, text='Make Global Vioeos', fg='#ffffff', bg='#999999', activebackground='#454545',
-                                  relief=tk.RAISED, width=16,padx=10, pady=5, font=(self.widgetFont,self.widgetFontSize), command=self.make_global_videos)
-        self.makeGlobalVideosButton.grid(row=11, column=5, sticky=tk.E)
+        self.makeGlobalVideosButton = tk.Button(root, text='Make Global Videos', fg='#ffffff', bg='#999999',
+                                                activebackground='#454545',
+                                                relief=tk.RAISED, width=16, padx=10, pady=5,
+                                                font=(self.widgetFont, self.widgetFontSize),
+                                                command=self.make_global_videos)
+        self.makeGlobalVideosButton.grid(row=11 - 4, column=5, sticky=tk.E)
 
+    def make_local_videos_button(self):
+        self.makeLocalVideosButton = tk.Button(root, text='Make Local Videos', fg='#ffffff', bg='#999999',
+                                               activebackground='#454545',
+                                               relief=tk.RAISED, width=16, padx=10, pady=5,
+                                               font=(self.widgetFont, self.widgetFontSize),
+                                               command=self.make_local_videos)
+        self.makeLocalVideosButton.grid(row=12 - 4, column=5, sticky=tk.E)
 
     def save_interested_moving_objects_fuction(self):
         if self.current_auto_exposure == "Local on moving objects" and len(self.moving_rectids) > 0:
@@ -171,94 +195,109 @@ class Browser:
             temp = []
             for id in self.moving_rectids:
                 coor = self.canvas.coords(id)
-                temp.append([coor[1]/h,coor[0]/w,coor[3]/h,coor[2]/w])
+                temp.append([coor[1] / h, coor[0] / w, coor[3] / h, coor[2] / w])
             self.rects_without_grids_moving_objests[curr_frame] = temp.copy()
-            #self.moving_rectids = []
+            # self.moving_rectids = []
             print("the dict of interests")
             print(self.rects_without_grids_moving_objests)
 
     def save_interested_moving_objects_button(self):
-        self.movingObjectButton = tk.Button(root, text='Save Interested Area', fg='#ffffff', bg='#999999', activebackground='#454545',
-                                  relief=tk.RAISED, width=16,padx=10, pady=5, font=(self.widgetFont,self.widgetFontSize), command=self.save_interested_moving_objects_fuction)
-        self.movingObjectButton.grid(row=10, column=5, sticky=tk.E)  # initial row was 26, +1 increments for all other rows
+        self.movingObjectButton = tk.Button(root, text='Save Interested Area', fg='#ffffff', bg='#999999',
+                                            activebackground='#454545',
+                                            relief=tk.RAISED, width=16, padx=10, pady=5,
+                                            font=(self.widgetFont, self.widgetFontSize),
+                                            command=self.save_interested_moving_objects_fuction)
+        self.movingObjectButton.grid(row=10 - 4, column=5,
+                                     sticky=tk.E)  # initial row was 26, +1 increments for all other rows
+
     def hdr_mean_button(self):
         # HDR Button - Mean
         self.HdrMeanButton = tk.Button(root, text='HDR-Mean', fg='#ffffff', bg='#999999', activebackground='#454545',
-                                  relief=tk.RAISED, width=16,padx=10, pady=5, font=(self.widgetFont, self.widgetFontSize), command=self.HdrMean)
+                                       relief=tk.RAISED, width=16, padx=10, pady=5,
+                                       font=(self.widgetFont, self.widgetFontSize), command=self.HdrMean)
         self.HdrMeanButton.grid(row=1, column=5, sticky=tk.E)  # initial row was 26, +1 increments for all other rows
 
     def hdr_median_button(self):
         # HDR Button - Median
-        self.HdrMedianButton = tk.Button(root, text='HDR-Median', fg='#ffffff', bg='#999999', activebackground='#454545',
-                                    relief=tk.RAISED, width=16, padx=10, pady=5,font=(self.widgetFont, self.widgetFontSize), command=self.HdrMedian)
+        self.HdrMedianButton = tk.Button(root, text='HDR-Median', fg='#ffffff', bg='#999999',
+                                         activebackground='#454545',
+                                         relief=tk.RAISED, width=16, padx=10, pady=5,
+                                         font=(self.widgetFont, self.widgetFontSize), command=self.HdrMedian)
         self.HdrMedianButton.grid(row=2, column=5, sticky=tk.E)
 
     def hdr_mertens_button(self):
         # HDR Button - Mertens
-        self.HdrMertensButton = tk.Button(root, text='HDR-Mertens', fg='#ffffff', bg='#999999', activebackground='#454545',
-                                     relief=tk.RAISED, width=16,padx=10, pady=5, font=(self.widgetFont, self.widgetFontSize), command=self.HdrMertens)
+        self.HdrMertensButton = tk.Button(root, text='HDR-Mertens', fg='#ffffff', bg='#999999',
+                                          activebackground='#454545',
+                                          relief=tk.RAISED, width=16, padx=10, pady=5,
+                                          font=(self.widgetFont, self.widgetFontSize), command=self.HdrMertens)
         self.HdrMertensButton.grid(row=3, column=5, sticky=tk.E)
 
     def show_Raw_Ims_check_box(self):
         self.useRawIms_ = tk.IntVar()
-        self.c1 = tk.Checkbutton(root, text='Show Raw Image', variable=self.useRawIms_, offvalue=0, onvalue=1,command=self.switch_raw)
+        self.c1 = tk.Checkbutton(root, text='Show Raw Image', variable=self.useRawIms_, offvalue=0, onvalue=1,
+                                 command=self.switch_raw)
         self.c1.grid(row=24, column=5)
 
     def hdr_abdullah_button(self):
         # HDR Button - Abdullah
-        self.HdrAbdullahButton = tk.Button(root, text='HDR-Abdullah', fg='#ffffff', bg='#999999', activebackground='#454545',
-                                      relief=tk.RAISED, width=16,padx=10, pady=5, font=(self.widgetFont, self.widgetFontSize),
-                                      command=self.HdrAbdullah)
+        self.HdrAbdullahButton = tk.Button(root, text='HDR-Abdullah', fg='#ffffff', bg='#999999',
+                                           activebackground='#454545',
+                                           relief=tk.RAISED, width=16, padx=10, pady=5,
+                                           font=(self.widgetFont, self.widgetFontSize),
+                                           command=self.HdrAbdullah)
         self.HdrAbdullahButton.grid(row=4, column=5, sticky=tk.E)
 
     def hdr_run_button(self):
         # Run Button
         self.RunButton = tk.Button(root, text='Run', fg='#ffffff', bg='#999999', activebackground='#454545',
-                              relief=tk.RAISED, width=16, padx=10, pady=5,font=(self.widgetFont, self.widgetFontSize), command=self.runVideo)
-        self.RunButton.grid(row=5, column=5, sticky=tk.E)
+                                   relief=tk.RAISED, width=16, padx=10, pady=5,
+                                   font=(self.widgetFont, self.widgetFontSize), command=self.runVideo)
+        self.RunButton.grid(row=5 - 4, column=5, sticky=tk.E)
 
     def hdr_pause_button(self):
         self.PauseButton = tk.Button(root, text='Pause', fg='#ffffff', bg='#999999', activebackground='#454545',
-                                relief=tk.RAISED,padx=10, pady=5,
-                                width=16, font=(self.widgetFont, self.widgetFontSize), command=self.pauseRun)
-        self.PauseButton.grid(row=6, column=5, sticky=tk.E)
+                                     relief=tk.RAISED, padx=10, pady=5,
+                                     width=16, font=(self.widgetFont, self.widgetFontSize), command=self.pauseRun)
+        self.PauseButton.grid(row=6 - 4, column=5, sticky=tk.E)
 
     def hdr_reset_button(self):
         # Reset Button
         self.RestButton = tk.Button(root, text='Reset', fg='#ffffff', bg='#999999', activebackground='#454545',
-                               relief=tk.RAISED,padx=10, pady=5, width=16, font=(self.widgetFont, self.widgetFontSize), command=self.resetValues)
-        self.RestButton.grid(row=7, column=5, sticky=tk.E)
+                                    relief=tk.RAISED, padx=10, pady=5, width=16,
+                                    font=(self.widgetFont, self.widgetFontSize), command=self.resetValues)
+        self.RestButton.grid(row=7 - 4, column=5, sticky=tk.E)
 
     def number_of_previous_frames_text_box(self):
         self.number_of_previous_frames = tk.IntVar()
         self.number_of_previous_frames.set(5)
         tk.Label(root, text="# of previous frames").grid(row=29, column=5)
         self.e1 = tk.Entry(root, textvariable=self.number_of_previous_frames)
-        self.e1.grid(row=30, column=5,sticky=tk.E)
+        self.e1.grid(row=30, column=5, sticky=tk.E)
 
     def stepsize_limit_text_box(self):
         self.stepsize_limit = tk.IntVar()
         self.stepsize_limit.set(3)
         tk.Label(root, text="step size limitation").grid(row=31, column=5)
         self.e1 = tk.Entry(root, textvariable=self.stepsize_limit)
-        self.e1.grid(row=32, column=5,sticky=tk.E)
+        self.e1.grid(row=32, column=5, sticky=tk.E)
 
     def regular_video_button(self):
 
         self.VideoButton = tk.Button(root, text='Video', fg='#ffffff', bg='#999999', activebackground='#454545',
-                                relief=tk.RAISED,padx=10, pady=5,
-                                width=16, font=(self.widgetFont, self.widgetFontSize), command=self.export_video)
-        self.VideoButton.grid(row=8, column=5, sticky=tk.E)
-
+                                     relief=tk.RAISED, padx=10, pady=5,
+                                     width=16, font=(self.widgetFont, self.widgetFontSize), command=self.export_video)
+        self.VideoButton.grid(row=8 - 4, column=5, sticky=tk.E)
 
     def outlier_slider(self):
         self.low_threshold = tk.DoubleVar()
         self.high_threshold = tk.DoubleVar()
-        self.outlierSlider =RangeSliderH(root, [self.low_threshold,self.high_threshold],Width = 400, Height = 65, min_val = 0, max_val = 1, show_value=True,padX=17
-                                         , line_s_color="#7eb1c2",digit_precision='.2f')
+        self.outlierSlider = RangeSliderH(root, [self.low_threshold, self.high_threshold], Width=400, Height=65,
+                                          min_val=0, max_val=1, show_value=True, padX=17
+                                          , line_s_color="#7eb1c2", digit_precision='.2f')
 
-        self.outlierSlider.grid(padx = 10, pady = 10, row=28, column=2,columnspan=1, sticky=tk.E)
-        #self.show_threshold()
+        self.outlierSlider.grid(padx=10, pady=10, row=28, column=2, columnspan=1, sticky=tk.E)
+        # self.show_threshold()
         self.low_rate_text_box()
         self.high_rate_text_box()
 
@@ -276,7 +315,6 @@ class Browser:
         self.e1 = tk.Entry(root, textvariable=self.high_rate)
         self.e1.grid(row=32, column=2)
 
-
     # def show_threshold(self):
     #     print(self.low_threshold.get())
     #     print(self.high_threshold.get())
@@ -284,13 +322,13 @@ class Browser:
     def clear_interested_areas_button(self):
         # clear the rects
         self.ClearInterestedAreasButton = tk.Button(root, text='Clear Rectangles', fg='#ffffff', bg='#999999',
-                                               activebackground='#454545',
-                                               relief=tk.RAISED, width=16,padx=10, pady=5,
-                                               font=(self.widgetFont, self.widgetFontSize), command=self.clear_rects,
-                                               )
-        self.ClearInterestedAreasButton.grid(row=9, column=5,
-                                        sticky=tk.E)  # initial row was 26, +1 increments for all other rows
-
+                                                    activebackground='#454545',
+                                                    relief=tk.RAISED, width=16, padx=10, pady=5,
+                                                    font=(self.widgetFont, self.widgetFontSize),
+                                                    command=self.clear_rects,
+                                                    )
+        self.ClearInterestedAreasButton.grid(row=9 - 4, column=5,
+                                             sticky=tk.E)  # initial row was 26, +1 increments for all other rows
 
     def scene_select(self):
         # Select Scene List
@@ -306,9 +344,11 @@ class Browser:
         # Select Scene List
         self.defAutoExposure = tk.StringVar(root)
         self.defAutoExposure.set(self.auto_exposures[0])  # default value
-        self.selAutoExposureLabel = tk.Label(root, text='Select AutoExposure:', font=(self.widgetFont, self.widgetFontSize))
+        self.selAutoExposureLabel = tk.Label(root, text='Select AutoExposure:',
+                                             font=(self.widgetFont, self.widgetFontSize))
         self.selAutoExposureLabel.grid(row=0, column=4, sticky=tk.W)
-        self.AutoExposureList = tk.OptionMenu(root, self.defAutoExposure, *self.auto_exposures, command=self.setAutoExposure)
+        self.AutoExposureList = tk.OptionMenu(root, self.defAutoExposure, *self.auto_exposures,
+                                              command=self.setAutoExposure)
         self.AutoExposureList.config(font=(self.widgetFont, self.widgetFontSize - 2), width=15, anchor=tk.W)
         self.AutoExposureList.grid(row=1, column=4, sticky=tk.NE)
 
@@ -346,13 +386,16 @@ class Browser:
 
     def local_consider_outliers_checkbox(self):
         self.local_consider_outliers_check_ = tk.IntVar()
-        self.c1 = tk.Checkbutton(root, text='Consider outliers at local selection', variable = self.local_consider_outliers_check_, offvalue=0, onvalue=1, command= self.switch_outlier)
-        self.c1.grid(row = 23, column = 5)
+        self.c1 = tk.Checkbutton(root, text='Consider outliers at local selection',
+                                 variable=self.local_consider_outliers_check_, offvalue=0, onvalue=1,
+                                 command=self.switch_outlier)
+        self.c1.grid(row=23, column=5)
 
     def high_res_checkbox(self):
         self.high_res_check = tk.IntVar()
-        self.c1 = tk.Checkbutton(root, text='High Resolution', variable = self.high_res_check, offvalue=0, onvalue=1, command= self.switch_res)
-        self.c1.grid(row = 28, column = 1)
+        self.c1 = tk.Checkbutton(root, text='High Resolution', variable=self.high_res_check, offvalue=0, onvalue=1,
+                                 command=self.switch_res)
+        self.c1.grid(row=28, column=1)
 
     def switch_outlier(self):
         self.local_consider_outliers_check = self.local_consider_outliers_check_.get()
@@ -372,7 +415,8 @@ class Browser:
     def mertens_checkbox(self):
 
         self.mertens_check = tk.IntVar()
-        self.c1 = tk.Checkbutton(root, text=' Mertens Export', variable= self.mertens_check, offvalue= 0, onvalue= 1, command= self.switch_mertens)
+        self.c1 = tk.Checkbutton(root, text=' Mertens Export', variable=self.mertens_check, offvalue=0, onvalue=1,
+                                 command=self.switch_mertens)
         self.c1.grid(row=29, column=1)
 
     def switch_mertens(self):
@@ -382,10 +426,12 @@ class Browser:
 
     def horizontal_slider(self):
         # Horizantal Slider
-        self.horSlider = tk.Scale(root, activebackground='black', cursor='sb_h_double_arrow', from_=0, to=self.frame_num[0] - 1,
-                             label='Frame Number', font=(self.widgetFont, self.widgetFontSize), orient=tk.HORIZONTAL,
-                             length=self.widthToScale, command=self.updateSlider)
-        self.horSlider.grid(row=27, column=1, columnspan=2,  sticky=tk.SW)
+        self.horSlider = tk.Scale(root, activebackground='black', cursor='sb_h_double_arrow', from_=0,
+                                  to=self.frame_num[0] - 1,
+                                  label='Frame Number', font=(self.widgetFont, self.widgetFontSize),
+                                  orient=tk.HORIZONTAL,
+                                  length=self.widthToScale, command=self.updateSlider)
+        self.horSlider.grid(row=27, column=1, columnspan=2, sticky=tk.SW)
 
     def vertical_slider(self):
         # Vertical Slider
@@ -450,7 +496,6 @@ class Browser:
             39: '1/500'
         }
 
-
         self.verSliderLabel = tk.Label(root, text='Exposure Time', font=(self.widgetFont, self.widgetFontSize))
         self.verSliderLabel.grid(row=0, column=0)
 
@@ -458,23 +503,23 @@ class Browser:
         #                      to=self.stack_size[self.scene_index] - 1, font=(self.widgetFont, self.widgetFontSize), length=self.heightToScale,
         #                      command=self.updateSlider)
 
-
         if self.stack_size[self.scene_index] == 40:
             min_ = min(self.SCALE_LABELS_NEW)
             max_ = max(self.SCALE_LABELS_NEW)
             min_ = 0
-            max_ = len(self.SCALE_LABELS_NEW)-1
+            max_ = len(self.SCALE_LABELS_NEW) - 1
         else:
             min_ = min(self.SCALE_LABELS)
             max_ = max(self.SCALE_LABELS)
             min_ = 0
-            max_ = len(self.SCALE_LABELS)-1
-        max_=40
-        self.verSlider = tk.Scale(root, activebackground='black', cursor='sb_v_double_arrow', from_=min_, to=max_, font=(self.widgetFont, self.widgetFontSize),
+            max_ = len(self.SCALE_LABELS) - 1
+        max_ = 40
+        self.verSlider = tk.Scale(root, activebackground='black', cursor='sb_v_double_arrow', from_=min_, to=max_,
+                                  font=(self.widgetFont, self.widgetFontSize),
                                   length=self.heightToScale,
-                                  command= self.scale_labels)
+                                  command=self.scale_labels)
 
-        #print(self.verSlider.configure().keys())
+        # print(self.verSlider.configure().keys())
 
         self.verSlider.grid(row=1, column=0, rowspan=25)
 
@@ -482,7 +527,7 @@ class Browser:
 
         # self.verSlider.config(label=self.SCALE_LABELS[int(value)])
         if self.stack_size[self.scene_index] == 40:
-            text_ =self.SCALE_LABELS_NEW[int(value)]
+            text_ = self.SCALE_LABELS_NEW[int(value)]
         else:
             text_ = self.SCALE_LABELS[int(value)]
         tk.Label(root, text=text_, font=("Times New Roman", 15)).grid(row=27, column=0, )
@@ -490,22 +535,16 @@ class Browser:
         # self.verSlider.place(x=50, y=300, anchor="center")
         self.useMertens = False
 
-
         # if(self.current_auto_exposure != "None"):
         #     self.check = True
         temp_img_ind = int(self.horSlider.get()) * self.stack_size[self.scene_index] + int(self.verSlider.get())
 
-        self.updateHorSlider(value,temp_img_ind)
-
-
-
+        self.updateHorSlider(value, temp_img_ind)
 
         # scale = tk.Scale(root, from_=min(SCALE_LABELS), to=max(SCALE_LABELS),
         #                  orient=tk.HORIZONTAL, showvalue=False, command=scale_labels)
 
-
-
-    def image_mean_plot(self,ind=0,val=0):
+    def image_mean_plot(self, ind=0, val=0):
         stack_size = self.stack_size[self.scene_index]
         curr_frame_mean_list = np.zeros(stack_size)
         if self.fig:
@@ -520,7 +559,7 @@ class Browser:
         plt.plot(np.arange(stack_size), curr_frame_mean_list, color='green',
                  linewidth=2)  # ,label='Exposure stack mean')
         plt.plot(ind, val, color='red', marker='o', markersize=12)
-        plt.text(ind, val,'(' + str(ind) + ', ' + str("%.2f" % val) + ')', color='red',
+        plt.text(ind, val, '(' + str(ind) + ', ' + str("%.2f" % val) + ')', color='red',
                  fontsize=13, position=(0 - 0.2, val + 0.04))
         plt.title('Exposure stack mean')
         plt.xlabel('Image index')
@@ -543,22 +582,21 @@ class Browser:
         self.imagePrevlabel_2 = tk.Label(root, image=self.photo_2)
         self.imagePrevlabel_2.grid(row=2, column=3, columnspan=2, rowspan=15, sticky=tk.NE)
 
-    def hist_plot(self,count1=np.zeros(100),count2=np.zeros(100)):
+    def hist_plot(self, count1=np.zeros(100), count2=np.zeros(100)):
         font = {'family': 'monospace',
                 'weight': 'bold',
                 'size': 10}
-        bins = np.arange(1,self.num_bins+1)
-        #self.fig = plt.figure(figsize=(4, 4))  # 4.6, 3.6
+        bins = np.arange(1, self.num_bins + 1)
+        # self.fig = plt.figure(figsize=(4, 4))  # 4.6, 3.6
         if self.fig_2:
             plt.close(self.fig_2)
             self.fig_2.clear()
-        self.fig_2, axes = plt.subplots(2, sharex=True, sharey=True,figsize=(4, 6))
-
+        self.fig_2, axes = plt.subplots(2, sharex=True, sharey=True, figsize=(4, 6))
 
         axes[1].bar(bins, count2, align='center')
         axes[0].bar(bins, count1, align='center')
-        axes[1].set_title('histogram with outlier',**font)
-        axes[0].set_title('histogram without outlier',**font)
+        axes[1].set_title('histogram with outlier', **font)
+        axes[0].set_title('histogram without outlier', **font)
 
         self.fig_2.canvas.draw()
 
@@ -567,7 +605,8 @@ class Browser:
         self.imagePrevlabel_3 = tk.Label(root, image=self.photo_3)
         self.imagePrevlabel_3.grid(row=17, column=3, columnspan=2, rowspan=20, sticky=tk.NE)
 
-    def hist_plot_three(self,stack_size,curr_frame_mean_list,count1=np.zeros(100), count2=np.zeros(100),count3=np.zeros(100),ind=0,val=0,ind2=0, val2=0):
+    def hist_plot_three(self, stack_size, curr_frame_mean_list, count1=np.zeros(100), count2=np.zeros(100),
+                        count3=np.zeros(100), ind=0, val=0, ind2=0, val2=0):
         # stack_size = self.stack_size[self.scene_index]
         # curr_frame_mean_list = np.zeros(stack_size)
         font = {'family': 'monospace',
@@ -580,15 +619,15 @@ class Browser:
             self.fig_2.clear()
         self.fig_2, axes = plt.subplots(3, figsize=(4, 9))
         self.fig_2.tight_layout()
-        sum_c1 = max(sum(count1),1)
-        sum_c2 = max(sum(count2),1)
-        sum_c3 = max(sum(count3),1)
-        vals1 = count1/sum_c1
+        sum_c1 = max(sum(count1), 1)
+        sum_c2 = max(sum(count2), 1)
+        sum_c3 = max(sum(count3), 1)
+        vals1 = count1 / sum_c1
         vals2 = count2 / sum_c2
         vals3 = count3 / sum_c3
         if ind == ind2:
             color1 = 'blue'
-            axes[1].bar(bins, vals2, align='center',color=color1)
+            axes[1].bar(bins, vals2, align='center', color=color1)
             axes[1].set_title('histogram with outlier', **font)
             axes[0].set_title('histogram without outlier', **font)
             for i, x in enumerate(vals2):
@@ -597,7 +636,7 @@ class Browser:
                                  fontsize=13, position=(i, 0.251))
         else:
             color1 = 'orange'
-            axes[1].bar(bins, vals3, align='center',color=color1)
+            axes[1].bar(bins, vals3, align='center', color=color1)
             axes[1].set_title('selected image histogram', **font)
             axes[0].set_title('current image histogram', **font)
             for i, x in enumerate(vals3):
@@ -605,24 +644,24 @@ class Browser:
                     axes[1].text(i, 0.25, str("%.2f" % x), color=color1,
                                  fontsize=13, position=(i, 0.251))
 
-        axes[0].bar(bins, vals1, align='center',color='violet')
+        axes[0].bar(bins, vals1, align='center', color='violet')
         axes[0].set_ylim([0, 0.25])
         axes[1].sharex(axes[0])
         axes[1].sharey(axes[0])
-        for i,x in enumerate(vals1):
+        for i, x in enumerate(vals1):
             if x > 0.25:
-                axes[0].text(i,0.25,str("%.2f" % x),color='violet',
-                 fontsize=13, position=(i, 0.251))
+                axes[0].text(i, 0.25, str("%.2f" % x), color='violet',
+                             fontsize=13, position=(i, 0.251))
 
         axes[2].plot(np.arange(stack_size), curr_frame_mean_list, color='green',
                      linewidth=2)  # ,label='Exposure stack mean')
         axes[2].plot(ind, val, color='violet', marker='o', markersize=12)
         axes[2].text(ind, val, '(' + str(ind) + ', ' + str("%.2f" % val) + ')', color='violet',
-                 fontsize=13, position=(ind - 0.2, val + 0.01))
+                     fontsize=13, position=(ind - 0.2, val + 0.01))
         if ind != ind2:
             axes[2].plot(ind2, val2, color='orange', marker='o', markersize=12)
             axes[2].text(ind2, val2, '(' + str(ind2) + ', ' + str("%.2f" % val2) + ')', color='orange',
-                     fontsize=13, position=(ind2 - 0.2, val2 + 0.01))
+                         fontsize=13, position=(ind2 - 0.2, val2 + 0.01))
         axes[2].set_title('Exposure stack mean', **font)
         axes[2].set_ylim([-0.1, 1.1])
         axes[2].set_xlim(-1, stack_size)
@@ -645,9 +684,9 @@ class Browser:
         temp_img = (np.mean(temp_stack, axis=0)).astype(np.uint8)
         cv2.putText(temp_img, 'HDR-Mean', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
-        #tempImg = Image.fromarray(temp_img)
-        #self.photo = ImageTk.PhotoImage(tempImg)
-        #self.imagePrevlabel.configure(image=self.photo)
+        # tempImg = Image.fromarray(temp_img)
+        # self.photo = ImageTk.PhotoImage(tempImg)
+        # self.imagePrevlabel.configure(image=self.photo)
 
     def HdrMedian(self):
 
@@ -657,11 +696,10 @@ class Browser:
         temp_img = (np.median(temp_stack, axis=0)).astype(np.uint8)
         cv2.putText(temp_img, 'HDR-Median', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
-        #tempImg = Image.fromarray(temp_img)
-        #self.photo = ImageTk.PhotoImage(tempImg)
-       # self.imagePrevlabel.configure(image=self.photo)
+        # tempImg = Image.fromarray(temp_img)
+        # self.photo = ImageTk.PhotoImage(tempImg)
 
-
+    # self.imagePrevlabel.configure(image=self.photo)
 
     def HdrMertens(self):
 
@@ -690,11 +728,12 @@ class Browser:
         for i in range(mean_min_dis_med.shape[0]):
             for j in range(mean_min_dis_med.shape[1]):
                 mean_min_dis_med[i, j, :] = temp_stack[stack_distance_min_med[i, j], i, j, :]
-        cv2.putText(mean_min_dis_med, 'HDR-Abdullah', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+        cv2.putText(mean_min_dis_med, 'HDR-Abdullah', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,
+                    cv2.LINE_AA)
 
-        #tempImg = Image.fromarray(mean_min_dis_med)
-        #self.photo = ImageTk.PhotoImage(tempImg)
-        #self.imagePrevlabel.configure(image=self.photo)
+        # tempImg = Image.fromarray(mean_min_dis_med)
+        # self.photo = ImageTk.PhotoImage(tempImg)
+        # self.imagePrevlabel.configure(image=self.photo)
 
     def export_video(self):
 
@@ -705,11 +744,9 @@ class Browser:
         self.mertensVideo = []
         self.mertens_pic = []
 
-
         if self.res_check == 0 and self.current_auto_exposure == "None":
 
             for i in range(100):
-
                 self.temp_img_ind = int(i) * self.stack_size[self.scene_index] + int(self.verSlider.get())
                 self.check = False
                 self.updatePlot()
@@ -724,14 +761,14 @@ class Browser:
 
             self.check_fps()
 
-            fold_name = self.scene[self.scene_index] + "_0.12_Ex_" + list[int(self.verSlider.get())] + "_FPS_" + str(self.video_fps)
+            fold_name = self.scene[self.scene_index] + "_0.12_Ex_" + list[int(self.verSlider.get())] + "_FPS_" + str(
+                self.video_fps)
             folderStore = os.path.join(os.path.dirname(__file__), 'Regular_Videos')
             os.makedirs(folderStore, exist_ok=True)
             connected_image = folderStore + self.joinPathChar + fold_name + ".avi"
 
             # capture the image and save it on the save path
             os.makedirs(folderStore, exist_ok=True)
-
 
             print(self.video_fps)
             video = cv2.VideoWriter(connected_image, cv2.VideoWriter_fourcc('M', 'J', "P", 'G'), self.video_fps,
@@ -753,15 +790,15 @@ class Browser:
                 self.temp_img_ind = int(i) * self.stack_size[self.scene_index] + self.eV[i]
                 self.check = False
                 self.updatePlot()
-                #reg_vid_plot.append(self.tempImg_2)
+                # reg_vid_plot.append(self.tempImg_2)
 
-                #img = deepcopy(self.img_all[self.temp_img_ind])
+                # img = deepcopy(self.img_all[self.temp_img_ind])
                 img = deepcopy(self.img_raw[i][self.eV[i]])
                 reg_vid.append(img)
 
             m1 = Image.fromarray(reg_vid[0])
-            #m2 = reg_vid_plot[0]
-            #sv = self.get_concat_h_blank(m1, m2)
+            # m2 = reg_vid_plot[0]
+            # sv = self.get_concat_h_blank(m1, m2)
             sv = m1
 
             self.check_fps()
@@ -775,15 +812,15 @@ class Browser:
             # capture the image and save it on the save path
             os.makedirs(folderStore, exist_ok=True)
 
-            #print(self.eV)
+            # print(self.eV)
             video = cv2.VideoWriter(connected_image, cv2.VideoWriter_fourcc('M', 'J', "P", 'G'), self.video_fps,
                                     (sv.width, sv.height))
 
             for i in range(len(reg_vid)):
                 tempImg = Image.fromarray(reg_vid[i])
-                #temp_img_plot = reg_vid_plot[i]
+                # temp_img_plot = reg_vid_plot[i]
 
-                #array = np.array(self.get_concat_h_blank(tempImg, temp_img_plot))
+                # array = np.array(self.get_concat_h_blank(tempImg, temp_img_plot))
                 array = np.array(tempImg)
                 video.write(cv2.cvtColor(array, cv2.COLOR_RGB2BGR))
 
@@ -801,7 +838,8 @@ class Browser:
 
             self.check_fps()
 
-            high_res_auto_ex_video.main(self.scene[self.scene_index], self.video_fps,self.eV,self.current_auto_exposure, self.folders)
+            high_res_auto_ex_video.main(self.scene[self.scene_index], self.video_fps, self.eV,
+                                        self.current_auto_exposure, self.folders)
 
     def get_concat_h_blank(self, im1, im2, color=(0, 0, 0)):
         dst = Image.new('RGB', (im1.width + im2.width, max(im1.height, im2.height)), color)
@@ -830,7 +868,7 @@ class Browser:
 
     def check_row_num_grids(self):
 
-        #print("row num girds is ", self.row_num_grids_.get())
+        # print("row num girds is ", self.row_num_grids_.get())
 
         if self.validate_num_grids(self.row_num_grids_.get()) is True:
 
@@ -844,7 +882,7 @@ class Browser:
 
     def check_col_num_grids(self):
 
-        #print("col num girds is ", self.col_num_grids_.get())
+        # print("col num girds is ", self.col_num_grids_.get())
 
         if self.validate_num_grids(self.col_num_grids_.get()) is True:
 
@@ -873,7 +911,7 @@ class Browser:
         if self.scene[self.scene_index] != self.defScene.get():
             self.clear_rects()
             self.scene_index = self.scene.index(self.defScene.get())
-            #input_ims = 'Image_Arrays_exposure/Scene' + str(self.scene_index + 1) + '_ds_raw_imgs.npy'
+            # input_ims = 'Image_Arrays_exposure/Scene' + str(self.scene_index + 1) + '_ds_raw_imgs.npy'
             self.setAutoExposure()
 
             # exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"], r_percent=self.exposureParams['r_percent'], g_percent=self.exposureParams['g_percent'],
@@ -881,16 +919,18 @@ class Browser:
             #                                     high_threshold=self.exposureParams['high_threshold'], high_rate=self.exposureParams['high_rate'])
             # self.eV,weighted_means,hists,hists_before_ds_outlier = exposures.pipeline()
 
-           # self.img_mean_list = np.load(os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.defScene.get() + '_img_mean_' + str(self.downscale_ratio) + '.npy') / (2 ** self.bit_depth - 1)
+            # self.img_mean_list = np.load(os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.defScene.get() + '_img_mean_' + str(self.downscale_ratio) + '.npy') / (2 ** self.bit_depth - 1)
 
-            self.img_mertens = np.load(os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.scene[self.scene_index] + '_mertens_imgs_' + str(self.downscale_ratio) + '.npy')
+            self.img_mertens = np.load(
+                os.path.join(os.path.dirname(__file__), 'Image_Arrays') + self.joinPathChar + self.scene[
+                    self.scene_index] + '_mertens_imgs_' + str(self.downscale_ratio) + '.npy')
 
             self.img_raw = np.load(
                 os.path.join(os.path.dirname(__file__), 'Image_Arrays_from_dng') + self.joinPathChar + self.scene[
                     self.scene_index] + '_show_dng_imgs' + '.npy')
             if self.scene_index < 20:
                 self.img_all = np.load(os.path.join(os.path.dirname(__file__),
-                                                'Image_Arrays') + self.joinPathChar + self.defScene.get() + '_imgs_' + str(
+                                                    'Image_Arrays') + self.joinPathChar + self.defScene.get() + '_imgs_' + str(
                     self.downscale_ratio) + '.npy')
             else:
                 self.img_all = self.img_raw
@@ -903,30 +943,48 @@ class Browser:
         if self.stack_size[self.scene_index] == 40:
             input_ims = 'Image_Arrays_exposure_new/Scene' + str(self.scene_index + 1) + '_ds_raw_imgs.npy'
         else:
-            input_ims = 'Image_Arrays_exposure/Scene' + str(self.scene_index+1) + '_ds_raw_imgs.npy'
+            input_ims = 'Image_Arrays_exposure/Scene' + str(self.scene_index + 1) + '_ds_raw_imgs.npy'
         self.check_num_grids()
-        self.exposureParams = {"downsample_rate":1/25,'r_percent':0.25,'g_percent':0.5,
-                                                'col_num_grids':self.col_num_grids, 'row_num_grids':self.row_num_grids, 'low_threshold':self.low_threshold.get(), 'low_rate':float(self.low_rate.get()),
-                                                'high_threshold':self.high_threshold.get(), 'high_rate':float(self.high_rate.get()),'stepsize':self.stepsize_limit.get(),"number_of_previous_frames":self.number_of_previous_frames.get()}
-        if(self.current_auto_exposure == "Global"):
+        self.exposureParams = {"downsample_rate": 1 / 25, 'r_percent': 0.25, 'g_percent': 0.5,
+                               'col_num_grids': self.col_num_grids, 'row_num_grids': self.row_num_grids,
+                               'low_threshold': self.low_threshold.get(), 'low_rate': float(self.low_rate.get()),
+                               'high_threshold': self.high_threshold.get(), 'high_rate': float(self.high_rate.get()),
+                               'stepsize': self.stepsize_limit.get(),
+                               "number_of_previous_frames": self.number_of_previous_frames.get()}
+        if (self.current_auto_exposure == "Global"):
             self.clear_rects()
-            exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"], r_percent=self.exposureParams['r_percent'], g_percent=self.exposureParams['g_percent'],
-                                                col_num_grids=self.exposureParams['col_num_grids'], row_num_grids=self.exposureParams['row_num_grids'], low_threshold=self.exposureParams['low_threshold'], low_rate=self.exposureParams['low_rate'],
-                                                high_threshold=self.exposureParams['high_threshold'], high_rate=self.exposureParams['high_rate'],stepsize=self.exposureParams['stepsize'],number_of_previous_frames=self.exposureParams['number_of_previous_frames'])
-            #exposures = exposure_class.Exposure(params = self.exposureParams)
-            self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+            exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"],
+                                                r_percent=self.exposureParams['r_percent'],
+                                                g_percent=self.exposureParams['g_percent'],
+                                                col_num_grids=self.exposureParams['col_num_grids'],
+                                                row_num_grids=self.exposureParams['row_num_grids'],
+                                                low_threshold=self.exposureParams['low_threshold'],
+                                                low_rate=self.exposureParams['low_rate'],
+                                                high_threshold=self.exposureParams['high_threshold'],
+                                                high_rate=self.exposureParams['high_rate'],
+                                                stepsize=self.exposureParams['stepsize'],
+                                                number_of_previous_frames=self.exposureParams[
+                                                    'number_of_previous_frames'])
+            # exposures = exposure_class.Exposure(params = self.exposureParams)
+            self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
 
-        elif(self.current_auto_exposure == "Local"):
+        elif (self.current_auto_exposure == "Local"):
             self.clear_rects_local_wo_grids()
             consider_outliers = bool(self.local_consider_outliers_check)
 
             list_local = local_interested_grids_generater(self.row_num_grids, self.col_num_grids, self.rectangles)
 
-            exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"], r_percent=self.exposureParams['r_percent'], g_percent=self.exposureParams['g_percent'],
-                                                col_num_grids=self.exposureParams['col_num_grids'], row_num_grids=self.exposureParams['row_num_grids'], low_threshold=self.exposureParams['low_threshold'], low_rate=self.exposureParams['low_rate'],
-                                                high_threshold=self.exposureParams['high_threshold'], high_rate=self.exposureParams['high_rate'],local_indices=list_local)
-            self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
-        elif(self.current_auto_exposure == "Local without grids"):
+            exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"],
+                                                r_percent=self.exposureParams['r_percent'],
+                                                g_percent=self.exposureParams['g_percent'],
+                                                col_num_grids=self.exposureParams['col_num_grids'],
+                                                row_num_grids=self.exposureParams['row_num_grids'],
+                                                low_threshold=self.exposureParams['low_threshold'],
+                                                low_rate=self.exposureParams['low_rate'],
+                                                high_threshold=self.exposureParams['high_threshold'],
+                                                high_rate=self.exposureParams['high_rate'], local_indices=list_local)
+            self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
+        elif (self.current_auto_exposure == "Local without grids"):
             self.clear_rects_local()
             list_local = self.list_local_without_grids()
 
@@ -939,9 +997,9 @@ class Browser:
                                                 low_rate=self.exposureParams['low_rate'],
                                                 high_threshold=self.exposureParams['high_threshold'],
                                                 high_rate=self.exposureParams['high_rate'], local_indices=list_local)
-            self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
+            self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
 
-        elif(self.current_auto_exposure == "Local on moving objects"):
+        elif (self.current_auto_exposure == "Local on moving objects"):
             self.clear_rects_local()
             list_local = self.list_local_without_grids_moving_objects()
 
@@ -954,7 +1012,7 @@ class Browser:
                                                 low_rate=self.exposureParams['low_rate'],
                                                 high_threshold=self.exposureParams['high_threshold'],
                                                 high_rate=self.exposureParams['high_rate'], local_indices=list_local)
-            self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline_local_without_grids_moving_object()
+            self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids_moving_object()
             print("list_local:")
             print(list_local)
         print("CURRENT AUTO EXPOSURE", self.current_auto_exposure)
@@ -964,11 +1022,12 @@ class Browser:
         print(self.eV_adjusted_v1)
         print("original_output")
         print(self.eV_original)
+
     def list_local_without_grids(self):
         list_ = []
         w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
-        for (y_start,x_strat,y_end,x_end) in self.rects_without_grids:
-            list_.append([y_start/h,x_strat/w,y_end/h,x_end/w])
+        for (y_start, x_strat, y_end, x_end) in self.rects_without_grids:
+            list_.append([y_start / h, x_strat / w, y_end / h, x_end / w])
         return list_
 
     # since the list is small 100 * n * 4, n is usually < 3, and the n varies, list is used rather than numpy array
@@ -980,7 +1039,7 @@ class Browser:
         keys = sorted(keys)
         if len(keys) > 0:
             list_coordi_temp = self.rects_without_grids_moving_objests[keys[0]]
-            #list_coordi_temp = []
+            # list_coordi_temp = []
             # for id in list_rectid_temp:
             #     coordi = self.canvas.coords(id)
             #     list_coordi_temp.append([coordi[1]/h,coordi[0]/w,coordi[3]/h,coordi[2]/w])
@@ -988,33 +1047,32 @@ class Browser:
                 list_.append(list_coordi_temp.copy())
             for i in range(1, len(keys)):
                 list_pre = list_coordi_temp.copy()
-                #list_coordi_temp = []
+                # list_coordi_temp = []
                 list_coordi_temp = self.rects_without_grids_moving_objests[keys[i]]
                 # for id in list_rectid_temp:
                 #     coordi = self.canvas.coords(id)
                 #     list_coordi_temp.append([coordi[1]/h, coordi[0]/w, coordi[3]/h, coordi[2]/w])
-                gap = keys[i] - keys[i-1]
-                for j in range(1,gap):
-                    #assume the number of rects are the same. if not, follow the less one, and assume the first "size" of rects are the cooresponding ones
-                    size = min(len(list_pre),len(list_coordi_temp))
+                gap = keys[i] - keys[i - 1]
+                for j in range(1, gap):
+                    # assume the number of rects are the same. if not, follow the less one, and assume the first "size" of rects are the cooresponding ones
+                    size = min(len(list_pre), len(list_coordi_temp))
                     list_coordi_temp_gap = []
                     for k in range(size):
-                        a1,b1,c1,d1 = list_pre[k]
-                        a2,b2,c2,d2 = list_coordi_temp[k]
+                        a1, b1, c1, d1 = list_pre[k]
+                        a2, b2, c2, d2 = list_coordi_temp[k]
                         a = a1 + (a2 - a1) * j / gap
                         b = b1 + (b2 - b1) * j / gap
                         c = c1 + (c2 - c1) * j / gap
                         d = d1 + (d2 - d1) * j / gap
-                        list_coordi_temp_gap.append([a,b,c,d])
+                        list_coordi_temp_gap.append([a, b, c, d])
                     list_.append(list_coordi_temp_gap.copy())
                 list_.append(list_coordi_temp.copy())
-            for i in range(keys[-1]+1,self.frame_num[self.scene_index]):
+            for i in range(keys[-1] + 1, self.frame_num[self.scene_index]):
                 list_.append(list_coordi_temp.copy())
                 # for (y_start,x_strat,y_end,x_end) in self.rects_without_grids_moving_objests[i]:
                 #     list__.append([y_start/h,x_strat/w,y_end/h,x_end/w])
                 # list_.append(list__)
         return list_
-
 
     def playVideo(self):
         # global horSlider, scene, scene_index, defScene, img, img_all, img_mean_list, downscale_ratio, bit_depth, play, video_speed, useMertens
@@ -1030,7 +1088,6 @@ class Browser:
                 set_speed = 360  # set as default speed
 
         # print('screen index is ', scene_index)
-
 
         if (self.horSlider.get() < (self.frame_num[self.scene_index] - 1) and self.play):
             self.horSlider.set(self.horSlider.get() + 1)
@@ -1064,7 +1121,7 @@ class Browser:
 
     def resetValues(self):
         # global verSlider, horSlider, photo, img, scene_index, play, useMertens
-        #if self.current_auto_exposure == "Local" or self.current_auto_exposure == "Local without grids":
+        # if self.current_auto_exposure == "Local" or self.current_auto_exposure == "Local without grids":
         self.setAutoExposure()
         # self.useMertens = False
         # print("Reset")
@@ -1074,7 +1131,7 @@ class Browser:
         # verSlider.set(0),
         self.horSlider.set(0)
 
-       # self.imagePrevlabel.configure(image=photo)
+        # self.imagePrevlabel.configure(image=photo)
         self.updatePlot()
 
     def updatePlot(self):
@@ -1110,10 +1167,11 @@ class Browser:
             val = 0
             ind2 = 0
             val2 = 0
-       # self.hist_plot_unvisible()
-        #self.image_mean_plot(stack_size=stack_size,curr_frame_mean_list=curr_frame_mean_list,ind=ind,val=val)
-        #self.hist_plot(count1=count1, count2=count2)
-        self.hist_plot_three(count1=count1, count2=count2,count3=count3,stack_size=stack_size,curr_frame_mean_list=curr_frame_mean_list,ind=ind,val=val,ind2=ind2,val2=val2)
+        # self.hist_plot_unvisible()
+        # self.image_mean_plot(stack_size=stack_size,curr_frame_mean_list=curr_frame_mean_list,ind=ind,val=val)
+        # self.hist_plot(count1=count1, count2=count2)
+        self.hist_plot_three(count1=count1, count2=count2, count3=count3, stack_size=stack_size,
+                             curr_frame_mean_list=curr_frame_mean_list, ind=ind, val=val, ind2=ind2, val2=val2)
 
     def clear_rects(self):
         self.clear_rects_local()
@@ -1137,31 +1195,23 @@ class Browser:
             self.canvas.delete(rect)
         self.current_rects_wo_grids = []
 
-
-    # def mouse_events(self,event):
-    #     if self.current_auto_exposure == "Local":
-    #         self.canvas_click(event)
-    #     if self.current_auto_exposure == "Local without grids":
-    #         self.local_wo_grids(event)
-
-
     def canvas_click(self, event):
         col, row = event.x, event.y
 
-        #self.clear_rects()
+        # self.clear_rects()
 
-        if self.current_auto_exposure  == "Local":
+        if self.current_auto_exposure == "Local":
             self.check_num_grids()
             self.colGridSelect = int(col * self.col_num_grids / self.photo.width())
             self.rowGridSelect = int(row * self.row_num_grids / self.photo.height())
             rect = [self.rowGridSelect, self.colGridSelect]
-            self.rectangles.append(rect) #making this array to allow us to be flexible in the future
+            self.rectangles.append(rect)  # making this array to allow us to be flexible in the future
             self.current_rects.append(self.draw_rectangle(rect[0], rect[1], "green"))
             self.setAutoExposure()
 
     def draw_rectangle(self, row, col, color):
         ww = self.photo.width()
-        hh= self.photo.height()
+        hh = self.photo.height()
         topx = col * (ww // self.col_num_grids)
         if col == self.col_num_grids - 1:
             botx = ww - 1
@@ -1173,11 +1223,11 @@ class Browser:
             boty = hh - 1
         else:
             boty = (row + 1) * (hh // self.row_num_grids)
-        #print(topx, topy, botx, boty)
+        # print(topx, topy, botx, boty)
         rect = self.canvas.create_rectangle(topx, topy, botx, boty, fill='', outline=color)
         return rect
 
-    def local_wo_grids(self,event):
+    def local_wo_grids(self, event):
         self.on_button_press(event)
         self.on_move_press(event)
         self.on_button_release(event)
@@ -1196,7 +1246,7 @@ class Browser:
             print("here")
             for i, r in enumerate(self.moving_rectids):
                 print("herehere")
-                r_start_x,r_start_y, r_end_x, r_end_y = self.canvas.coords(r)
+                r_start_x, r_start_y, r_end_x, r_end_y = self.canvas.coords(r)
                 if r_start_x <= self.start_x <= r_end_x and r_start_y <= self.start_y <= r_end_y:
                     self.the_moving_rect = r
                     self.rect_ind = i
@@ -1242,20 +1292,20 @@ class Browser:
             self.curY = curY
 
     def on_button_release(self, event):
-        print("rect: "+str(self.rect))
-        print("start_x: "+str(self.start_x))
-        print("start_y: "+str(self.start_y))
-        print("cur_x: "+str(self.curX))
-        print("cur_y: "+str(self.curY))
+        print("rect: " + str(self.rect))
+        print("start_x: " + str(self.start_x))
+        print("start_y: " + str(self.start_y))
+        print("cur_x: " + str(self.curX))
+        print("cur_y: " + str(self.curY))
         if self.current_auto_exposure == "Local without grids":
             self.rects_without_grids.append([self.start_y, self.start_x, self.curY, self.curX])
             print(self.rects_without_grids)
-        if self.current_auto_exposure  == "Local":
+        if self.current_auto_exposure == "Local":
             self.check_num_grids()
             self.colGridSelect = int(self.start_x * self.col_num_grids / self.photo.width())
             self.rowGridSelect = int(self.start_y * self.row_num_grids / self.photo.height())
             rect = [self.rowGridSelect, self.colGridSelect]
-            self.rectangles.append(rect) #making this array to allow us to be flexible in the future
+            self.rectangles.append(rect)  # making this array to allow us to be flexible in the future
             self.current_rects.append(self.draw_rectangle(rect[0], rect[1], "green"))
             self.setAutoExposure()
         if self.current_auto_exposure == "Local on moving objects":
@@ -1276,28 +1326,30 @@ class Browser:
                 self.y_offset = 0
                 self.rect_ind = None
 
-    def right_click(self,event):
+    def right_click(self, event):
         self.start_x = self.canvas.canvasx(event.x)
         self.start_y = self.canvas.canvasy(event.y)
         self.curX = self.start_x
         self.curY = self.start_y
         print("here")
-        for i,r in enumerate(self.moving_rectids):
+        for i, r in enumerate(self.moving_rectids):
             print("herehere")
             r_start_x, r_start_y, r_end_x, r_end_y = self.canvas.coords(r)
-            #r_start_y ,r_start_x,r_end_y,r_end_x   = self.rects[i]
+            # r_start_y ,r_start_x,r_end_y,r_end_x   = self.rects[i]
             if r_start_x <= self.start_x <= r_end_x and r_start_y <= self.start_y <= r_end_y:
                 self.the_scrolling_rect = r
-                #self.the_rect_ind = i
+                # self.the_rect_ind = i
                 break
 
-    def zoomerP(self,event):
+    def zoomerP(self, event):
         if self.the_scrolling_rect:
             old_coordinate = self.canvas.coords(self.the_scrolling_rect)
             factor = 1.1
-            self.canvas.coords(self.the_scrolling_rect, old_coordinate[0]*0.9,old_coordinate[1]*0.9,old_coordinate[2]*1.1,old_coordinate[3]*1.1)
-            #self.canvas.configure(scrollregion = self.canvas.bbox("all"))
-    def zoomerM(self,event):
+            self.canvas.coords(self.the_scrolling_rect, old_coordinate[0] * 0.9, old_coordinate[1] * 0.9,
+                               old_coordinate[2] * 1.1, old_coordinate[3] * 1.1)
+            # self.canvas.configure(scrollregion = self.canvas.bbox("all"))
+
+    def zoomerM(self, event):
         print(self.the_scrolling_rect)
         if self.the_scrolling_rect:
             old_coordinate = self.canvas.coords(self.the_scrolling_rect)
@@ -1306,10 +1358,10 @@ class Browser:
             self.canvas.coords(self.the_scrolling_rect, old_coordinate[0] * 1.1, old_coordinate[1] * 1.1,
                                old_coordinate[2] * 0.9, old_coordinate[3] * 0.9)
 
-        #self.canvas.coords(self.the_moving_rect, event.x, event.y, 0.9, 0.9)
-        #self.canvas.configure(scrollregion = self.canvas.bbox("all"))
+        # self.canvas.coords(self.the_moving_rect, event.x, event.y, 0.9, 0.9)
+        # self.canvas.configure(scrollregion = self.canvas.bbox("all"))
 
-    def zoomer(self,event):
+    def zoomer(self, event):
         print("in zoomer")
         if self.the_scrolling_rect:
             print("here")
@@ -1325,10 +1377,8 @@ class Browser:
                 self.canvas.coords(self.the_scrolling_rect, old_coordinate[0] * 1.1, old_coordinate[1] * 1.1,
                                    old_coordinate[2] * 0.9, old_coordinate[3] * 0.9)
 
-
-
     def updateSlider(self, scale_value):
-        if((self.current_auto_exposure != "None") and (len(self.eV) > 0)):
+        if ((self.current_auto_exposure != "None") and (len(self.eV) > 0)):
             self.verSlider.set(self.eV[self.horSlider.get()])
             temp_img_ind = int(self.horSlider.get()) * self.stack_size[self.scene_index] + self.eV[self.horSlider.get()]
         else:
@@ -1367,8 +1417,7 @@ class Browser:
         # # Keep reference in case this code is put into a function.
         # self.updatePlot()
 
-    def updateHorSlider(self, scale_value,temp_img_ind):
-
+    def updateHorSlider(self, scale_value, temp_img_ind):
 
         autoExposureMode = True
 
@@ -1379,7 +1428,7 @@ class Browser:
             # img = self.mertensVideo[self.horSlider.get()]
             img = self.img_mertens[self.horSlider.get()]
         elif self.useRawIms:
-            #print(self.verSlider.get())
+            # print(self.verSlider.get())
             img = self.img_raw[self.horSlider.get()][self.verSlider.get()]
         else:
             img = deepcopy(self.img_all[temp_img_ind])
@@ -1388,12 +1437,10 @@ class Browser:
         # self.imagePrevlabel = tk.Label(root, image=self.photo)
         # self.imagePrevlabel.grid(row=1, column=1, rowspan=30, sticky=tk.NW)
 
-        tempImg = Image.fromarray(img).resize((self.canvas.winfo_width(),self.canvas.winfo_height()))
+        tempImg = Image.fromarray(img).resize((self.canvas.winfo_width(), self.canvas.winfo_height()))
 
-
-
-        self.photo = ImageTk.PhotoImage(tempImg,width=self.canvas.winfo_width(),height=self.canvas.winfo_height())
-         #= self.photo  # Keep reference in case this code is put into a function.
+        self.photo = ImageTk.PhotoImage(tempImg, width=self.canvas.winfo_width(), height=self.canvas.winfo_height())
+        # = self.photo  # Keep reference in case this code is put into a function.
 
         self.canvas.itemconfig(self.canvas_img, image=self.photo)
 
@@ -1412,220 +1459,218 @@ class Browser:
             return
         self.check_num_grids()
 
-        col_num_grids=8
-        row_num_grids=8
-        low_threshold=0
-        low_rate=0.2
-        high_threshold=1
-        high_rate=0.2
-        stepsize_limit=100
-        number_of_previous_frames=1
-        downsample_rate=1/25
-        r_percent=0.25
-        g_percent=0.5
-        #8 8 0 1 100 1
-        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims,exposureparams)
-        #exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                       stepsize_limit, number_of_previous_frames)
+        col_num_grids = 8
+        row_num_grids = 8
+        low_threshold = 0
+        low_rate = 0.2
+        high_threshold = 1
+        high_rate = 0.2
+        stepsize_limit = 100
+        number_of_previous_frames = 1
+        downsample_rate = 1 / 25
+        r_percent = 0.25
+        g_percent = 0.5
+        # 8 8 0 1 100 1
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
-        low_threshold=0.05
-        high_threshold=0.9
+        low_threshold = 0.05
+        high_threshold = 0.9
         # 8 8 0.05 0.9 100 1
-        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims,exposureparams)
-        #exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                       stepsize_limit, number_of_previous_frames)
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
-
-        low_threshold=0.1
-        high_threshold=0.8
+        low_threshold = 0.1
+        high_threshold = 0.8
         # 8 8 0.1 0.8 100 1
-        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims,exposureparams)
-        #exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                       stepsize_limit, number_of_previous_frames)
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
-
-        col_num_grids=20
-        row_num_grids=20
+        col_num_grids = 20
+        row_num_grids = 20
         # 20 20 0.1 0.8 100 1
-        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims,exposureparams)
-        #exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                       stepsize_limit, number_of_previous_frames)
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
         low_threshold = 0.05
         high_threshold = 0.9
         # 20 20 0.05 0.9 100 1
-        exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
-                                         low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
-                                         number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims, exposureparams)
-        # exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                            stepsize_limit, number_of_previous_frames)
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
         low_threshold = 0
         high_threshold = 1
         # 20 20 0 1 100 1
-        exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
-                                         low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
-                                         number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims, exposureparams)
-        # exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                            stepsize_limit, number_of_previous_frames)
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
-
-
-        stepsize_limit=1
-        number_of_previous_frames=10
+        stepsize_limit = 1
+        number_of_previous_frames = 10
         # 20 20 0 1 1 10
-        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims,exposureparams)
-        #exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                       stepsize_limit, number_of_previous_frames)
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
-
-        stepsize_limit=3
-        number_of_previous_frames=5
+        stepsize_limit = 3
+        number_of_previous_frames = 5
         # 20 20 0 1 3 5
-        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims,exposureparams)
-        #exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                       stepsize_limit, number_of_previous_frames)
-
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
         low_threshold = 0.05
         high_threshold = 0.9
         # 20 20 0.05 0.9 3 5
-        exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
-                                         low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
-                                         number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims, exposureparams)
-        # exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                            stepsize_limit, number_of_previous_frames)
-
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
         low_threshold = 0.1
         high_threshold = 0.8
         # 20 20 0.1 0.8 3 5
-        exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
-                                         low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
-                                         number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims, exposureparams)
-        # exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                            stepsize_limit, number_of_previous_frames)
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
-
-
-
-        stepsize_limit=1
-        number_of_previous_frames=10
+        stepsize_limit = 1
+        number_of_previous_frames = 10
         # 20 20 0.1 0.8 1 10
-        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims,exposureparams)
-        #exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                       stepsize_limit, number_of_previous_frames)
-
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
         low_threshold = 0.05
         high_threshold = 0.9
         # 20 20 0.05 0.9 1 10
-        exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
-                                         low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
-                                         number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims, exposureparams)
-        # exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                            stepsize_limit, number_of_previous_frames)
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
-
-        col_num_grids=8
-        row_num_grids=8
+        col_num_grids = 8
+        row_num_grids = 8
         # 8 8 0.05 0.9 1 10
-        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims,exposureparams)
-        #exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                       stepsize_limit, number_of_previous_frames)
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
-        stepsize_limit=3
-        number_of_previous_frames=5
+        stepsize_limit = 3
+        number_of_previous_frames = 5
         # 8 8 0.05 0.9 3 5
-        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims,exposureparams)
-        #exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                       stepsize_limit, number_of_previous_frames)
-
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
         low_threshold = 0.1
         high_threshold = 0.8
         # 8 8 0.1 0.8 3 5
-        exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
-                                         low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
-                                         number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims, exposureparams)
-        # exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                            stepsize_limit, number_of_previous_frames)
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
-
-        stepsize_limit=1
-        number_of_previous_frames=10
+        stepsize_limit = 1
+        number_of_previous_frames = 10
         # 8 8 0.1 0.8 1 10
-        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims,exposureparams)
-        #exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                       stepsize_limit, number_of_previous_frames)
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
 
         low_threshold = 0
         high_threshold = 1
         # 8 8 0 1 1 10
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
+
+        stepsize_limit = 3
+        number_of_previous_frames = 5
+        # 8 8 0 1 3 5
+        self.make_global_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
+
+    def make_local_videos(self):
+        if self.current_auto_exposure != "Local without grids":
+            return
+        self.scene_index = self.scene.index(self.defScene.get())
+        if self.stack_size[self.scene_index] == 40:
+            input_ims = 'Image_Arrays_exposure_new/Scene' + str(self.scene_index + 1) + '_ds_raw_imgs.npy'
+        else:
+            return
+        self.check_num_grids()
+
+        col_num_grids = 8
+        row_num_grids = 8
+        low_threshold = 0
+        low_rate = 0.2
+        high_threshold = 1
+        high_rate = 0.2
+        stepsize_limit = 100
+        number_of_previous_frames = 1
+        downsample_rate = 1 / 25
+        r_percent = 0.25
+        g_percent = 0.5
+        #  0 1 100 1
+        self.make_local_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                number_of_previous_frames)
+        stepsize_limit = 1
+        number_of_previous_frames = 10
+        #  0 1 1 10
+        self.make_local_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                number_of_previous_frames)
+
+        stepsize_limit = 3
+        number_of_previous_frames = 5
+        # 0 1 3 5
+        self.make_local_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                number_of_previous_frames)
+
+        low_threshold = 0.05
+        high_threshold = 0.9
+        # 0.05 0.9 3 5
+        self.make_local_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                number_of_previous_frames)
+
+        stepsize_limit = 1
+        number_of_previous_frames = 10
+        # 0.05 0.9 1 10
+        self.make_local_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                number_of_previous_frames)
+
+
+        stepsize_limit = 100
+        number_of_previous_frames = 1
+        # 0.05 0.9 100 1
+        self.make_local_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                number_of_previous_frames)
+
+    def make_local_videos_helper(self, input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                 low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                 number_of_previous_frames):
+        exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                         low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                         number_of_previous_frames)
+        # self.clear_rects()
+        exposures = self.exposure_class_construction_local(input_ims, exposureparams)
+        # exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                            stepsize_limit, number_of_previous_frames)
+
+    def make_global_videos_helper(self, input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                  low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                  number_of_previous_frames):
         exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
                                          low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
                                          number_of_previous_frames)
@@ -1636,28 +1681,31 @@ class Browser:
         self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
                             stepsize_limit, number_of_previous_frames)
 
-
-        stepsize_limit=3
-        number_of_previous_frames=5
-        # 8 8 0 1 3 5
-        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
-        self.clear_rects()
-        exposures = self.exposure_class_construction(input_ims,exposureparams)
-        #exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
-        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
-                       stepsize_limit, number_of_previous_frames)
-
-
-    def set_params(self,r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames):
-        exposureParams = {"downsample_rate": downsample_rate, 'r_percent': r_percent, 'g_percent':g_percent,
+    def set_params(self, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids, low_threshold, low_rate,
+                   high_threshold, high_rate, stepsize_limit, number_of_previous_frames):
+        exposureParams = {"downsample_rate": downsample_rate, 'r_percent': r_percent, 'g_percent': g_percent,
                           'col_num_grids': col_num_grids, 'row_num_grids': row_num_grids,
                           'low_threshold': low_threshold, 'low_rate': low_rate,
                           'high_threshold': high_threshold, 'high_rate': high_rate, 'stepsize': stepsize_limit,
                           "number_of_previous_frames": number_of_previous_frames}
         return exposureParams
 
-    def exposure_class_construction(self,input_ims,exposureparams):
+    def exposure_class_construction_local(self, input_ims, exposureparams):
+        self.clear_rects_local()
+        list_local = self.list_local_without_grids()
+
+        exposures = exposure_class.Exposure(input_ims, downsample_rate=exposureparams["downsample_rate"],
+                                            r_percent=exposureparams['r_percent'],
+                                            g_percent=exposureparams['g_percent'],
+                                            col_num_grids=exposureparams['col_num_grids'],
+                                            row_num_grids=exposureparams['row_num_grids'],
+                                            low_threshold=exposureparams['low_threshold'],
+                                            low_rate=exposureparams['low_rate'],
+                                            high_threshold=exposureparams['high_threshold'],
+                                            high_rate=exposureparams['high_rate'], local_indices=list_local)
+        return exposures
+
+    def exposure_class_construction(self, input_ims, exposureparams):
         exposures = exposure_class.Exposure(input_ims, downsample_rate=exposureparams["downsample_rate"],
                                             r_percent=exposureparams['r_percent'],
                                             g_percent=exposureparams['g_percent'],
@@ -1671,11 +1719,12 @@ class Browser:
                                             number_of_previous_frames=exposureparams['number_of_previous_frames'])
         return exposures
 
-    def export_video_2(self,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames):
+    def export_video_2(self, col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                       stepsize_limit, number_of_previous_frames):
 
         reg_vid = []
-        #reg_vid_plot = []
-        #list = ['15', '8', '6', '4', '2', '1', '05', '1-4', '1-8', '1-15', '1-30', '1-60', '1-125', '1-250', '1-500']
+        # reg_vid_plot = []
+        # list = ['15', '8', '6', '4', '2', '1', '05', '1-4', '1-8', '1-15', '1-30', '1-60', '1-125', '1-250', '1-500']
 
         self.mertensVideo = []
         self.mertens_pic = []
@@ -1687,21 +1736,30 @@ class Browser:
             self.temp_img_ind = int(i) * self.stack_size[self.scene_index] + self.eV[i]
             self.check = False
             self.updatePlot()
-            #reg_vid_plot.append(self.tempImg_2)
+            # reg_vid_plot.append(self.tempImg_2)
 
-            #img = deepcopy(self.img_all[self.temp_img_ind])
+            # img = deepcopy(self.img_all[self.temp_img_ind])
             img = deepcopy(self.img_raw[i][self.eV[i]])
             reg_vid.append(img)
 
         m1 = Image.fromarray(reg_vid[0])
-        #m2 = reg_vid_plot[0]
-        #sv = self.get_concat_h_blank(m1, m2)
+        # m2 = reg_vid_plot[0]
+        # sv = self.get_concat_h_blank(m1, m2)
         sv = m1
 
         self.check_fps()
+        if self.current_auto_exposure == "Global":
+            fold_name = self.scene[self.scene_index] + "_dng_pipeline_" + self.current_auto_exposure + "_FPS_" + str(
+                self.video_fps) + "_" + str(col_num_grids) + "x" + str(row_num_grids) + "_low_threshold" + str(
+                low_threshold) + "(" + str(low_rate) + ")_high_threshold" + str(high_threshold) + "(" + str(
+                high_rate) + ")_steplimit" + str(stepsize_limit) + "_#ofPreFrames" + str(number_of_previous_frames)
+        else:
+            fold_name = self.scene[
+                            self.scene_index] + "_dng_pipeline_" + self.current_auto_exposure + "_" + self.local_interested_name.get() + "_FPS_" + str(
+                self.video_fps) + "_low_threshold" + str(
+                low_threshold) + "(" + str(low_rate) + ")_high_threshold" + str(high_threshold) + "(" + str(
+                high_rate) + ")_steplimit" + str(stepsize_limit) + "_#ofPreFrames" + str(number_of_previous_frames)
 
-        fold_name = self.scene[self.scene_index] + "_dng_pipeline_" + self.current_auto_exposure + "_FPS_" + str(
-            self.video_fps)+"_"+str(col_num_grids)+"x"+str(row_num_grids)+"_low_threshold"+str(low_threshold)+"("+ str(low_rate)+")_high_threshold"+str(high_threshold)+"("+str(high_rate)+")_steplimit"+str(stepsize_limit)+"_#ofPreFrames"+str(number_of_previous_frames)
         folderStore = os.path.join(os.path.dirname(__file__), 'Regular_Videos')
         os.makedirs(folderStore, exist_ok=True)
         connected_image = folderStore + self.joinPathChar + fold_name + ".avi"
@@ -1709,22 +1767,21 @@ class Browser:
         # capture the image and save it on the save path
         os.makedirs(folderStore, exist_ok=True)
 
-        #print(self.eV)
+        # print(self.eV)
         video = cv2.VideoWriter(connected_image, cv2.VideoWriter_fourcc('M', 'J', "P", 'G'), self.video_fps,
                                 (sv.width, sv.height))
 
         for i in range(len(reg_vid)):
             tempImg = Image.fromarray(reg_vid[i])
-            #temp_img_plot = reg_vid_plot[i]
+            # temp_img_plot = reg_vid_plot[i]
 
-            #array = np.array(self.get_concat_h_blank(tempImg, temp_img_plot))
+            # array = np.array(self.get_concat_h_blank(tempImg, temp_img_plot))
             array = np.array(tempImg)
             video.write(cv2.cvtColor(array, cv2.COLOR_RGB2BGR))
 
         video.release()
 
         self.check_fps()
-
 
 
 b = Browser(root)
