@@ -163,6 +163,7 @@ class Browser:
         self.save_interested_moving_objects_button()
         self.make_global_videos_button()
         self.make_local_videos_button()
+        self.make_moving_object_videos_button()
         self.local_interested_name_text_box()
 
     def local_interested_name_text_box(self):
@@ -187,6 +188,14 @@ class Browser:
                                                font=(self.widgetFont, self.widgetFontSize),
                                                command=self.make_local_videos)
         self.makeLocalVideosButton.grid(row=12 - 4, column=5, sticky=tk.E)
+
+    def make_moving_object_videos_button(self):
+        self.makeMovingObjectVideosButton = tk.Button(root, text='Make Local Videos', fg='#ffffff', bg='#999999',
+                                               activebackground='#454545',
+                                               relief=tk.RAISED, width=16, padx=10, pady=5,
+                                               font=(self.widgetFont, self.widgetFontSize),
+                                               command=self.make_moving_object_videos)
+        self.makeMovingObjectVideosButton.grid(row=13 - 4, column=5, sticky=tk.E)
 
     def save_interested_moving_objects_fuction(self):
         if self.current_auto_exposure == "Local on moving objects" and len(self.moving_rectids) > 0:
@@ -1655,6 +1664,80 @@ class Browser:
                                 low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
                                 number_of_previous_frames)
 
+    def make_moving_object_videos(self):
+        if self.current_auto_exposure != "Local on moving objects":
+            return
+        self.scene_index = self.scene.index(self.defScene.get())
+        if self.stack_size[self.scene_index] == 40:
+            input_ims = 'Image_Arrays_exposure_new/Scene' + str(self.scene_index + 1) + '_ds_raw_imgs.npy'
+        else:
+            return
+        self.check_num_grids()
+
+        col_num_grids = 8
+        row_num_grids = 8
+        low_threshold = 0
+        low_rate = 0.2
+        high_threshold = 1
+        high_rate = 0.2
+        stepsize_limit = 100
+        number_of_previous_frames = 1
+        downsample_rate = 1 / 25
+        r_percent = 0.25
+        g_percent = 0.5
+        #  0 1 100 1
+        self.make_moving_object_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                number_of_previous_frames)
+        stepsize_limit = 1
+        number_of_previous_frames = 10
+        #  0 1 1 10
+        self.make_moving_object_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                number_of_previous_frames)
+
+        stepsize_limit = 3
+        number_of_previous_frames = 5
+        # 0 1 3 5
+        self.make_moving_object_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                number_of_previous_frames)
+
+        low_threshold = 0.05
+        high_threshold = 0.9
+        # 0.05 0.9 3 5
+        self.make_moving_object_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                number_of_previous_frames)
+
+        stepsize_limit = 1
+        number_of_previous_frames = 10
+        # 0.05 0.9 1 10
+        self.make_moving_object_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                number_of_previous_frames)
+
+
+        stepsize_limit = 100
+        number_of_previous_frames = 1
+        # 0.05 0.9 100 1
+        self.make_moving_object_videos_helper(input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                number_of_previous_frames)
+
+    def make_moving_object_videos_helper(self, input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                 low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                 number_of_previous_frames):
+        exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                         low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                         number_of_previous_frames)
+        # self.clear_rects()
+        exposures = self.exposure_class_construction_moving_object(input_ims, exposureparams)
+        # exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids_moving_object()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                            stepsize_limit, number_of_previous_frames)
+
     def make_local_videos_helper(self, input_ims, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
                                  low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
                                  number_of_previous_frames):
@@ -1705,6 +1788,20 @@ class Browser:
                                             high_rate=exposureparams['high_rate'], local_indices=list_local)
         return exposures
 
+    def exposure_class_construction_moving_object(self, input_ims, exposureparams):
+        self.clear_rects_local()
+        list_local = self.list_local_without_grids_moving_objects()
+
+        exposures = exposure_class.Exposure(input_ims, downsample_rate=exposureparams["downsample_rate"],
+                                            r_percent=exposureparams['r_percent'],
+                                            g_percent=exposureparams['g_percent'],
+                                            col_num_grids=exposureparams['col_num_grids'],
+                                            row_num_grids=exposureparams['row_num_grids'],
+                                            low_threshold=exposureparams['low_threshold'],
+                                            low_rate=exposureparams['low_rate'],
+                                            high_threshold=exposureparams['high_threshold'],
+                                            high_rate=exposureparams['high_rate'], local_indices=list_local)
+        return exposures
     def exposure_class_construction(self, input_ims, exposureparams):
         exposures = exposure_class.Exposure(input_ims, downsample_rate=exposureparams["downsample_rate"],
                                             r_percent=exposureparams['r_percent'],
