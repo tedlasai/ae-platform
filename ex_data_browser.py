@@ -156,6 +156,13 @@ class Browser:
         self.number_of_previous_frames_text_box()
         self.stepsize_limit_text_box()
         self.save_interested_moving_objects_button()
+        self.make_global_videos_button()
+
+    def make_global_videos_button(self):
+        self.makeGlobalVideosButton = tk.Button(root, text='Make Global Vioeos', fg='#ffffff', bg='#999999', activebackground='#454545',
+                                  relief=tk.RAISED, width=16,padx=10, pady=5, font=(self.widgetFont,self.widgetFontSize), command=self.make_global_videos)
+        self.makeGlobalVideosButton.grid(row=11, column=5, sticky=tk.E)
+
 
     def save_interested_moving_objects_fuction(self):
         if self.current_auto_exposure == "Local on moving objects" and len(self.moving_rectids) > 0:
@@ -898,7 +905,7 @@ class Browser:
         else:
             input_ims = 'Image_Arrays_exposure/Scene' + str(self.scene_index+1) + '_ds_raw_imgs.npy'
         self.check_num_grids()
-        self.exposureParams = {"downsample_rate":1/25,'r_percent':0,'g_percent':1,
+        self.exposureParams = {"downsample_rate":1/25,'r_percent':0.25,'g_percent':0.5,
                                                 'col_num_grids':self.col_num_grids, 'row_num_grids':self.row_num_grids, 'low_threshold':self.low_threshold.get(), 'low_rate':float(self.low_rate.get()),
                                                 'high_threshold':self.high_threshold.get(), 'high_rate':float(self.high_rate.get()),'stepsize':self.stepsize_limit.get(),"number_of_previous_frames":self.number_of_previous_frames.get()}
         if(self.current_auto_exposure == "Global"):
@@ -1394,6 +1401,331 @@ class Browser:
 
         # Keep reference in case this code is put into a function.
         self.updatePlot()
+
+    def make_global_videos(self):
+        if self.current_auto_exposure != "Global":
+            return
+        self.scene_index = self.scene.index(self.defScene.get())
+        if self.stack_size[self.scene_index] == 40:
+            input_ims = 'Image_Arrays_exposure_new/Scene' + str(self.scene_index + 1) + '_ds_raw_imgs.npy'
+        else:
+            return
+        self.check_num_grids()
+
+        col_num_grids=8
+        row_num_grids=8
+        low_threshold=0
+        low_rate=0.2
+        high_threshold=1
+        high_rate=0.2
+        stepsize_limit=100
+        number_of_previous_frames=1
+        downsample_rate=1/25
+        r_percent=0.25
+        g_percent=0.5
+        #8 8 0 1 100 1
+        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims,exposureparams)
+        #exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                       stepsize_limit, number_of_previous_frames)
+
+        low_threshold=0.05
+        high_threshold=0.9
+        # 8 8 0.05 0.9 100 1
+        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims,exposureparams)
+        #exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                       stepsize_limit, number_of_previous_frames)
+
+
+        low_threshold=0.1
+        high_threshold=0.8
+        # 8 8 0.1 0.8 100 1
+        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims,exposureparams)
+        #exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                       stepsize_limit, number_of_previous_frames)
+
+
+        col_num_grids=20
+        row_num_grids=20
+        # 20 20 0.1 0.8 100 1
+        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims,exposureparams)
+        #exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                       stepsize_limit, number_of_previous_frames)
+
+        low_threshold = 0.05
+        high_threshold = 0.9
+        # 20 20 0.05 0.9 100 1
+        exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                         low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                         number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims, exposureparams)
+        # exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                            stepsize_limit, number_of_previous_frames)
+
+        low_threshold = 0
+        high_threshold = 1
+        # 20 20 0 1 100 1
+        exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                         low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                         number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims, exposureparams)
+        # exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                            stepsize_limit, number_of_previous_frames)
+
+
+
+        stepsize_limit=1
+        number_of_previous_frames=10
+        # 20 20 0 1 1 10
+        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims,exposureparams)
+        #exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                       stepsize_limit, number_of_previous_frames)
+
+
+        stepsize_limit=3
+        number_of_previous_frames=5
+        # 20 20 0 1 3 5
+        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims,exposureparams)
+        #exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                       stepsize_limit, number_of_previous_frames)
+
+
+        low_threshold = 0.05
+        high_threshold = 0.9
+        # 20 20 0.05 0.9 3 5
+        exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                         low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                         number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims, exposureparams)
+        # exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                            stepsize_limit, number_of_previous_frames)
+
+
+        low_threshold = 0.1
+        high_threshold = 0.8
+        # 20 20 0.1 0.8 3 5
+        exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                         low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                         number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims, exposureparams)
+        # exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                            stepsize_limit, number_of_previous_frames)
+
+
+
+
+        stepsize_limit=1
+        number_of_previous_frames=10
+        # 20 20 0.1 0.8 1 10
+        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims,exposureparams)
+        #exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                       stepsize_limit, number_of_previous_frames)
+
+
+        low_threshold = 0.05
+        high_threshold = 0.9
+        # 20 20 0.05 0.9 1 10
+        exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                         low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                         number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims, exposureparams)
+        # exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                            stepsize_limit, number_of_previous_frames)
+
+
+        col_num_grids=8
+        row_num_grids=8
+        # 8 8 0.05 0.9 1 10
+        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims,exposureparams)
+        #exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                       stepsize_limit, number_of_previous_frames)
+
+        stepsize_limit=3
+        number_of_previous_frames=5
+        # 8 8 0.05 0.9 3 5
+        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims,exposureparams)
+        #exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                       stepsize_limit, number_of_previous_frames)
+
+
+        low_threshold = 0.1
+        high_threshold = 0.8
+        # 8 8 0.1 0.8 3 5
+        exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                         low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                         number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims, exposureparams)
+        # exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                            stepsize_limit, number_of_previous_frames)
+
+
+        stepsize_limit=1
+        number_of_previous_frames=10
+        # 8 8 0.1 0.8 1 10
+        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims,exposureparams)
+        #exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                       stepsize_limit, number_of_previous_frames)
+
+        low_threshold = 0
+        high_threshold = 1
+        # 8 8 0 1 1 10
+        exposureparams = self.set_params(r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                         low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                         number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims, exposureparams)
+        # exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                            stepsize_limit, number_of_previous_frames)
+
+
+        stepsize_limit=3
+        number_of_previous_frames=5
+        # 8 8 0 1 3 5
+        exposureparams =self.set_params(r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames)
+        self.clear_rects()
+        exposures = self.exposure_class_construction(input_ims,exposureparams)
+        #exposures = exposure_class.Exposure(params = self.exposureParams)
+        self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline()
+        self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
+                       stepsize_limit, number_of_previous_frames)
+
+
+    def set_params(self,r_percent,g_percent,downsample_rate,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames):
+        exposureParams = {"downsample_rate": downsample_rate, 'r_percent': r_percent, 'g_percent':g_percent,
+                          'col_num_grids': col_num_grids, 'row_num_grids': row_num_grids,
+                          'low_threshold': low_threshold, 'low_rate': low_rate,
+                          'high_threshold': high_threshold, 'high_rate': high_rate, 'stepsize': stepsize_limit,
+                          "number_of_previous_frames": number_of_previous_frames}
+        return exposureParams
+
+    def exposure_class_construction(self,input_ims,exposureparams):
+        exposures = exposure_class.Exposure(input_ims, downsample_rate=exposureparams["downsample_rate"],
+                                            r_percent=exposureparams['r_percent'],
+                                            g_percent=exposureparams['g_percent'],
+                                            col_num_grids=exposureparams['col_num_grids'],
+                                            row_num_grids=exposureparams['row_num_grids'],
+                                            low_threshold=exposureparams['low_threshold'],
+                                            low_rate=exposureparams['low_rate'],
+                                            high_threshold=exposureparams['high_threshold'],
+                                            high_rate=exposureparams['high_rate'],
+                                            stepsize=exposureparams['stepsize'],
+                                            number_of_previous_frames=exposureparams['number_of_previous_frames'])
+        return exposures
+
+    def export_video_2(self,col_num_grids,row_num_grids,low_threshold, low_rate,high_threshold,high_rate,stepsize_limit,number_of_previous_frames):
+
+        reg_vid = []
+        #reg_vid_plot = []
+        #list = ['15', '8', '6', '4', '2', '1', '05', '1-4', '1-8', '1-15', '1-30', '1-60', '1-125', '1-250', '1-500']
+
+        self.mertensVideo = []
+        self.mertens_pic = []
+        frame_size = self.frame_num[self.scene_index]
+        if not len(self.eV) == frame_size:
+            return
+
+        for i in range(frame_size):
+            self.temp_img_ind = int(i) * self.stack_size[self.scene_index] + self.eV[i]
+            self.check = False
+            self.updatePlot()
+            #reg_vid_plot.append(self.tempImg_2)
+
+            #img = deepcopy(self.img_all[self.temp_img_ind])
+            img = deepcopy(self.img_raw[i][self.eV[i]])
+            reg_vid.append(img)
+
+        m1 = Image.fromarray(reg_vid[0])
+        #m2 = reg_vid_plot[0]
+        #sv = self.get_concat_h_blank(m1, m2)
+        sv = m1
+
+        self.check_fps()
+
+        fold_name = self.scene[self.scene_index] + "_dng_pipeline_" + self.current_auto_exposure + "_FPS_" + str(
+            self.video_fps)+"_"+str(col_num_grids)+"x"+str(row_num_grids)+"_low_threshold"+str(low_threshold)+"("+ str(low_rate)+")_high_threshold"+str(high_threshold)+"("+str(high_rate)+")_steplimit"+str(stepsize_limit)+"_#ofPreFrames"+str(number_of_previous_frames)
+        folderStore = os.path.join(os.path.dirname(__file__), 'Regular_Videos')
+        os.makedirs(folderStore, exist_ok=True)
+        connected_image = folderStore + self.joinPathChar + fold_name + ".avi"
+
+        # capture the image and save it on the save path
+        os.makedirs(folderStore, exist_ok=True)
+
+        #print(self.eV)
+        video = cv2.VideoWriter(connected_image, cv2.VideoWriter_fourcc('M', 'J', "P", 'G'), self.video_fps,
+                                (sv.width, sv.height))
+
+        for i in range(len(reg_vid)):
+            tempImg = Image.fromarray(reg_vid[i])
+            #temp_img_plot = reg_vid_plot[i]
+
+            #array = np.array(self.get_concat_h_blank(tempImg, temp_img_plot))
+            array = np.array(tempImg)
+            video.write(cv2.cvtColor(array, cv2.COLOR_RGB2BGR))
+
+        video.release()
+
+        self.check_fps()
+
+
 
 b = Browser(root)
 
