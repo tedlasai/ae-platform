@@ -258,16 +258,17 @@ class Exposure:
         return flatten_weighted_ims
 
     def get_flatten_weighted_imgs_local_wo_grids_moving_object(self, ims):
-        flatten_weighted_ims = np.ones((self.num_frame, self.num_ims_per_frame, self.h , self.w)) * (-0.01)
-        for i in range(self.num_frame):
-            for (y_start,x_start,y_end,x_end) in self.local_indices[i]:
-                y_start = int(y_start * self.h)
-                x_start = int(x_start * self.w)
-                y_end = int(y_end * self.h)
-                x_end = int(x_end * self.w)
-
-
-                flatten_weighted_ims[i,:,y_start:y_end+1,x_start:x_end+1] = ims[i,:,y_start:y_end+1,x_start:x_end+1]
+        if len(self.local_indices) == 0:
+            flatten_weighted_ims = ims
+        else:
+            flatten_weighted_ims = np.ones((self.num_frame, self.num_ims_per_frame, self.h , self.w)) * (-0.01)
+            for i in range(self.num_frame):
+                for (y_start,x_start,y_end,x_end) in self.local_indices[i]:
+                    y_start = int(y_start * self.h)
+                    x_start = int(x_start * self.w)
+                    y_end = int(y_end * self.h)
+                    x_end = int(x_end * self.w)
+                    flatten_weighted_ims[i,:,y_start:y_end+1,x_start:x_end+1] = ims[i,:,y_start:y_end+1,x_start:x_end+1]
         flatten_weighted_ims = flatten_weighted_ims.reshape((self.num_frame, self.num_ims_per_frame, self.h*self.w))
         flatten_weighted_ims_before_outlier = np.array(flatten_weighted_ims)
         flatten_weighted_ims[flatten_weighted_ims < self.low_threshold] = -0.01

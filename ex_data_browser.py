@@ -42,9 +42,9 @@ class Browser:
                       'Scene16', 'Scene17', 'Scene18', 'Scene19', 'Scene20', 'Scene21']
         self.frame_num = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
                           100, 100, 100, 100, 100]  # number of frames per position
-        self.stack_size = [40, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
+        self.stack_size = [40, 15, 15, 15, 15, 15, 15, 15, 15, 40, 15, 15, 15, 15, 15, 15, 15,
                            40, 40, 40, 40]  # number of shutter options per position
-
+        self.eV = []
         self.auto_exposures = ["None", "Global", "Local",'Local without grids','Local on moving objects']
         self.current_auto_exposure = "None"
 
@@ -155,8 +155,25 @@ class Browser:
         self.auto_exposure_select()
         self.number_of_previous_frames_text_box()
         self.stepsize_limit_text_box()
+        self.save_interested_moving_objects_button()
 
+    def save_interested_moving_objects_fuction(self):
+        if self.current_auto_exposure == "Local on moving objects" and len(self.moving_rectids) > 0:
+            w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
+            curr_frame = self.horSlider.get()
+            temp = []
+            for id in self.moving_rectids:
+                coor = self.canvas.coords(id)
+                temp.append([coor[1]/h,coor[0]/w,coor[3]/h,coor[2]/w])
+            self.rects_without_grids_moving_objests[curr_frame] = temp.copy()
+            #self.moving_rectids = []
+            print("the dict of interests")
+            print(self.rects_without_grids_moving_objests)
 
+    def save_interested_moving_objects_button(self):
+        self.movingObjectButton = tk.Button(root, text='Save Interested Area', fg='#ffffff', bg='#999999', activebackground='#454545',
+                                  relief=tk.RAISED, width=16,padx=10, pady=5, font=(self.widgetFont,self.widgetFontSize), command=self.save_interested_moving_objects_fuction)
+        self.movingObjectButton.grid(row=10, column=5, sticky=tk.E)  # initial row was 26, +1 increments for all other rows
     def hdr_mean_button(self):
         # HDR Button - Mean
         self.HdrMeanButton = tk.Button(root, text='HDR-Mean', fg='#ffffff', bg='#999999', activebackground='#454545',
@@ -259,7 +276,7 @@ class Browser:
 
     def clear_interested_areas_button(self):
         # clear the rects
-        self.ClearInterestedAreasButton = tk.Button(root, text='Clear_Rectangles', fg='#ffffff', bg='#999999',
+        self.ClearInterestedAreasButton = tk.Button(root, text='Clear Rectangles', fg='#ffffff', bg='#999999',
                                                activebackground='#454545',
                                                relief=tk.RAISED, width=16,padx=10, pady=5,
                                                font=(self.widgetFont, self.widgetFontSize), command=self.clear_rects,
@@ -930,8 +947,9 @@ class Browser:
                                                 low_rate=self.exposureParams['low_rate'],
                                                 high_threshold=self.exposureParams['high_threshold'],
                                                 high_rate=self.exposureParams['high_rate'], local_indices=list_local)
-            self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
-
+            self.eV,self.eV_adjusted_v1,self.eV_original,self.weighted_means,self.hists,self.hists_before_ds_outlier = exposures.pipeline_local_without_grids_moving_object()
+            print("list_local:")
+            print(list_local)
         print("CURRENT AUTO EXPOSURE", self.current_auto_exposure)
         print("adjusted_by_previous_n_frames")
         print(self.eV)
@@ -954,20 +972,20 @@ class Browser:
         keys = self.rects_without_grids_moving_objests.keys()
         keys = sorted(keys)
         if len(keys) > 0:
-            list_rectid_temp = self.rects_without_grids_moving_objests[keys[0]]
-            list_coordi_temp = []
-            for id in list_rectid_temp:
-                coordi = self.canvas.coords(id)
-                list_coordi_temp.append([coordi[1]/h,coordi[0]/w,coordi[3]/h,coordi[2]/w])
+            list_coordi_temp = self.rects_without_grids_moving_objests[keys[0]]
+            #list_coordi_temp = []
+            # for id in list_rectid_temp:
+            #     coordi = self.canvas.coords(id)
+            #     list_coordi_temp.append([coordi[1]/h,coordi[0]/w,coordi[3]/h,coordi[2]/w])
             for i in range(keys[0] + 1):
                 list_.append(list_coordi_temp.copy())
             for i in range(1, len(keys)):
                 list_pre = list_coordi_temp.copy()
-                list_coordi_temp = []
-                list_rectid_temp = self.rects_without_grids_moving_objests[keys[i]]
-                for id in list_rectid_temp:
-                    coordi = self.canvas.coords(id)
-                    list_coordi_temp.append([coordi[1]/h, coordi[0]/w, coordi[3]/h, coordi[2]/w])
+                #list_coordi_temp = []
+                list_coordi_temp = self.rects_without_grids_moving_objests[keys[i]]
+                # for id in list_rectid_temp:
+                #     coordi = self.canvas.coords(id)
+                #     list_coordi_temp.append([coordi[1]/h, coordi[0]/w, coordi[3]/h, coordi[2]/w])
                 gap = keys[i] - keys[i-1]
                 for j in range(1,gap):
                     #assume the number of rects are the same. if not, follow the less one, and assume the first "size" of rects are the cooresponding ones
@@ -1093,6 +1111,12 @@ class Browser:
     def clear_rects(self):
         self.clear_rects_local()
         self.clear_rects_local_wo_grids()
+        self.clear_moving_rects()
+
+    def clear_moving_rects(self):
+        for rect in self.moving_rectids:
+            self.canvas.delete(rect)
+        self.moving_rectids = []
 
     def clear_rects_local(self):
         self.rectangles = []
@@ -1297,7 +1321,7 @@ class Browser:
 
 
     def updateSlider(self, scale_value):
-        if(self.current_auto_exposure != "None"):
+        if((self.current_auto_exposure != "None") and (len(self.eV) > 0)):
             self.verSlider.set(self.eV[self.horSlider.get()])
             temp_img_ind = int(self.horSlider.get()) * self.stack_size[self.scene_index] + self.eV[self.horSlider.get()]
         else:
