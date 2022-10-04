@@ -190,7 +190,7 @@ class Browser:
         self.makeLocalVideosButton.grid(row=12 - 4, column=5, sticky=tk.E)
 
     def make_moving_object_videos_button(self):
-        self.makeMovingObjectVideosButton = tk.Button(root, text='Make Local Videos', fg='#ffffff', bg='#999999',
+        self.makeMovingObjectVideosButton = tk.Button(root, text='Moving Object Videos', fg='#ffffff', bg='#999999',
                                                activebackground='#454545',
                                                relief=tk.RAISED, width=16, padx=10, pady=5,
                                                font=(self.widgetFont, self.widgetFontSize),
@@ -991,7 +991,11 @@ class Browser:
                                                 low_threshold=self.exposureParams['low_threshold'],
                                                 low_rate=self.exposureParams['low_rate'],
                                                 high_threshold=self.exposureParams['high_threshold'],
-                                                high_rate=self.exposureParams['high_rate'], local_indices=list_local)
+                                                high_rate=self.exposureParams['high_rate'], local_indices=list_local,
+                                                stepsize=self.exposureParams['stepsize'],
+                                                number_of_previous_frames=self.exposureParams[
+                                                    'number_of_previous_frames']
+                                                )
             self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
         elif (self.current_auto_exposure == "Local without grids"):
             self.clear_rects_local()
@@ -1005,7 +1009,11 @@ class Browser:
                                                 low_threshold=self.exposureParams['low_threshold'],
                                                 low_rate=self.exposureParams['low_rate'],
                                                 high_threshold=self.exposureParams['high_threshold'],
-                                                high_rate=self.exposureParams['high_rate'], local_indices=list_local)
+                                                high_rate=self.exposureParams['high_rate'], local_indices=list_local,
+                                                stepsize=self.exposureParams['stepsize'],
+                                                number_of_previous_frames=self.exposureParams[
+                                                    'number_of_previous_frames']
+                                                )
             self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
 
         elif (self.current_auto_exposure == "Local on moving objects"):
@@ -1020,7 +1028,11 @@ class Browser:
                                                 low_threshold=self.exposureParams['low_threshold'],
                                                 low_rate=self.exposureParams['low_rate'],
                                                 high_threshold=self.exposureParams['high_threshold'],
-                                                high_rate=self.exposureParams['high_rate'], local_indices=list_local)
+                                                high_rate=self.exposureParams['high_rate'], local_indices=list_local,
+                                                stepsize=self.exposureParams['stepsize'],
+                                                number_of_previous_frames=self.exposureParams[
+                                                    'number_of_previous_frames']
+                                                )
             self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids_moving_object()
             print("list_local:")
             print(list_local)
@@ -1785,7 +1797,11 @@ class Browser:
                                             low_threshold=exposureparams['low_threshold'],
                                             low_rate=exposureparams['low_rate'],
                                             high_threshold=exposureparams['high_threshold'],
-                                            high_rate=exposureparams['high_rate'], local_indices=list_local)
+                                            high_rate=exposureparams['high_rate'], local_indices=list_local,
+                                            stepsize=exposureparams['stepsize'],
+                                            number_of_previous_frames=exposureparams[
+                                                'number_of_previous_frames']
+                                            )
         return exposures
 
     def exposure_class_construction_moving_object(self, input_ims, exposureparams):
@@ -1800,7 +1816,11 @@ class Browser:
                                             low_threshold=exposureparams['low_threshold'],
                                             low_rate=exposureparams['low_rate'],
                                             high_threshold=exposureparams['high_threshold'],
-                                            high_rate=exposureparams['high_rate'], local_indices=list_local)
+                                            high_rate=exposureparams['high_rate'], local_indices=list_local,
+                                            stepsize=exposureparams['stepsize'],
+                                            number_of_previous_frames=exposureparams[
+                                                'number_of_previous_frames']
+                                            )
         return exposures
     def exposure_class_construction(self, input_ims, exposureparams):
         exposures = exposure_class.Exposure(input_ims, downsample_rate=exposureparams["downsample_rate"],

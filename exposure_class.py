@@ -360,6 +360,10 @@ class Exposure:
     def adjusted_opti_inds_v2_by_average_of_previous_n_frames(self,opti_inds):
         length = len(opti_inds)
         opti_inds_new = np.array(opti_inds)
+        print("# previes frames")
+        print(self.number_of_previous_frames)
+        print("step size")
+        print(self.stepsize)
         if length > 1:
             i = 1
             while i < length:
