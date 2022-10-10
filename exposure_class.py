@@ -4,7 +4,8 @@ import numpy as np
 class Exposure:
     def __init__(self, input_images, downsample_rate=1 / 64, r_percent=0, g_percent=1, col_num_grids=8, row_num_grids=8,
                  target_intensity=0.19, high_threshold=1, low_threshold=0, high_rate=0.2, low_rate=0.2,
-                 local_indices=[], num_hist_bins=100, local_with_downsampled_outliers=False,stepsize=3,number_of_previous_frames=5):
+                 local_indices=[], num_hist_bins=100, local_with_downsampled_outliers=False,stepsize=3,number_of_previous_frames=5,global_rate=0):
+        self.global_rate = global_rate
         self.absolute_bit = 2**8  # max bit number of the raw image
         self.input_images = input_images
         self.downsample_rate = downsample_rate  # down sample rate of the original images, preferred value is as # 1/perfectsquare (i.e 1/36, 1/81)
@@ -261,7 +262,14 @@ class Exposure:
         if len(self.local_indices) == 0:
             flatten_weighted_ims = ims
         else:
-            flatten_weighted_ims = np.ones((self.num_frame, self.num_ims_per_frame, self.h , self.w)) * (-0.01)
+            #flatten_weighted_ims = np.ones((self.num_frame, self.num_ims_per_frame, self.h , self.w)) * (-0.01)
+            total_pixels = self.num_frame * self.num_ims_per_frame * self.h * self.w
+            flatten_weighted_ims = np.ones(total_pixels) * (-0.01)
+            if self.global_rate > 0:
+                inds = np.random.choice(total_pixels, int(total_pixels * self.global_rate), replace=False)
+                flatten_weighted_ims[inds] = 2
+            flatten_weighted_ims = flatten_weighted_ims.reshape(
+                (self.num_frame, self.num_ims_per_frame, self.h, self.w))
             for i in range(self.num_frame):
                 for (y_start,x_start,y_end,x_end) in self.local_indices[i]:
                     y_start = int(y_start * self.h)
@@ -269,6 +277,9 @@ class Exposure:
                     y_end = int(y_end * self.h)
                     x_end = int(x_end * self.w)
                     flatten_weighted_ims[i,:,y_start:y_end+1,x_start:x_end+1] = ims[i,:,y_start:y_end+1,x_start:x_end+1]
+        if self.global_rate > 0:
+            ind2d = np.where(flatten_weighted_ims == 2)
+            flatten_weighted_ims[ind2d] = ims[ind2d]
         flatten_weighted_ims = flatten_weighted_ims.reshape((self.num_frame, self.num_ims_per_frame, self.h*self.w))
         flatten_weighted_ims_before_outlier = np.array(flatten_weighted_ims)
         flatten_weighted_ims[flatten_weighted_ims < self.low_threshold] = -0.01
@@ -277,15 +288,22 @@ class Exposure:
         return flatten_weighted_ims,flatten_weighted_ims_before_outlier
 
     def get_flatten_weighted_imgs_local_wo_grids(self, ims):
-        flatten_weighted_ims = np.ones((self.num_frame, self.num_ims_per_frame, self.h , self.w)) * (-0.01)
+        #flatten_weighted_ims = np.ones((self.num_frame, self.num_ims_per_frame, self.h , self.w)) * (-0.01)
+        total_pixels = self.num_frame * self.num_ims_per_frame * self.h * self.w
+        flatten_weighted_ims = np.ones(total_pixels) * (-0.01)
+        if self.global_rate > 0:
+            inds = np.random.choice(total_pixels,int(total_pixels*self.global_rate),replace=False)
+            flatten_weighted_ims[inds] = 2
+        flatten_weighted_ims = flatten_weighted_ims.reshape((self.num_frame, self.num_ims_per_frame, self.h, self.w))
         for (y_start,x_start,y_end,x_end) in self.local_indices:
             y_start = int(y_start * self.h)
             x_start = int(x_start * self.w)
             y_end = int(y_end * self.h)
             x_end = int(x_end * self.w)
-
-
             flatten_weighted_ims[:,:,y_start:y_end+1,x_start:x_end+1] = ims[:,:,y_start:y_end+1,x_start:x_end+1]
+        if self.global_rate > 0:
+            ind2d = np.where(flatten_weighted_ims == 2)
+            flatten_weighted_ims[ind2d] = ims[ind2d]
         flatten_weighted_ims = flatten_weighted_ims.reshape((self.num_frame, self.num_ims_per_frame, self.h*self.w))
         flatten_weighted_ims_before_outlier = np.array(flatten_weighted_ims)
         flatten_weighted_ims[flatten_weighted_ims < self.low_threshold] = -0.01
