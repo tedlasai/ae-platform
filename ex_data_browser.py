@@ -30,6 +30,7 @@ class Browser:
     def __init__(self, root):
         super().__init__()
 
+
         self.folders = "E:\Final"  # link to directory containing all the dataset image folders
 
         self.widgetFont = 'Arial'
@@ -196,6 +197,7 @@ class Browser:
         self.fig_4 = None
         self.local_consider_outliers_check = 0
         self.init_functions()
+        self.show_srgb_hist_check = self.show_srgb_hist_check_.get()
 
     def init_functions(self):
 
@@ -232,6 +234,7 @@ class Browser:
         self.make_moving_object_videos_button()
         self.local_interested_name_text_box()
         self.local_interested_global_area_percentage_box()
+        self.show_SRGB_hist_check_box()
 
     def local_interested_name_text_box(self):
         self.local_interested_name = tk.StringVar()
@@ -322,6 +325,11 @@ class Browser:
                                  command=self.switch_raw)
         self.c1.grid(row=24, column=5)
 
+    def show_SRGB_hist_check_box(self):
+        self.show_srgb_hist_check_ = tk.IntVar()
+        self.c1 = tk.Checkbutton(root, text='Show SRGB Hist', variable=self.show_srgb_hist_check_, offvalue=0, onvalue=1,
+                                 command=self.switch_SRGB_Hist)
+        self.c1.grid(row=27, column=5)
     def hdr_abdullah_button(self):
         # HDR Button - Abdullah
         self.HdrAbdullahButton = tk.Button(root, text='HDR-Abdullah', fg='#ffffff', bg='#999999',
@@ -495,6 +503,12 @@ class Browser:
         print("self.useRawIms is ", self.useRawIms)
         self.updateSlider(0)
 
+    def switch_SRGB_Hist(self):
+
+        self.show_srgb_hist_check = self.show_srgb_hist_check_.get()
+        print("self.show_srgb_hist_chec is ", self.show_srgb_hist_check)
+        self.updateSlider(0)
+
     def mertens_checkbox(self):
 
         self.mertens_check = tk.IntVar()
@@ -643,6 +657,10 @@ class Browser:
         self.fig_2, axes = plt.subplots(3, figsize=(4, 9))
         self.fig_2.tight_layout()
         sum_c1 = max(sum(count1), 1)
+
+        print(count1)
+        print("=========")
+        print(count2)
         sum_c2 = max(sum(count2), 1)
         sum_c3 = max(sum(count3), 1)
         vals1 = count1 / sum_c1
@@ -1030,6 +1048,7 @@ class Browser:
                                                     'number_of_previous_frames'],
                                                 global_rate=self.exposureParams['global_rate']
                                                 )
+            exposures.gradient_exposure()
             self.eV,  self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
 
         elif (self.current_auto_exposure == "Local on moving objects"):
@@ -1185,7 +1204,14 @@ class Browser:
             first_ind = self.temp_img_ind // stack_size
             send_ind = self.temp_img_ind % stack_size
             count1 = self.hists[first_ind][send_ind]
-            count2 = self.hists_before_ds_outlier[first_ind][send_ind]
+            print("current srgb hist check")
+            print(self.show_srgb_hist_check)
+            if self.show_srgb_hist_check == 1:
+                print("here")
+                count2 = self.show_srgb_hist()
+                print(count2)
+            else:
+                count2 = self.hists_before_ds_outlier[first_ind][send_ind]
 
             curr_frame_mean_list = self.weighted_means[first_ind]
             ind = send_ind
@@ -1208,6 +1234,48 @@ class Browser:
         # self.hist_plot(count1=count1, count2=count2)
         self.hist_plot_three(count1=count1, count2=count2, count3=count3, stack_size=stack_size,
                              curr_frame_mean_list=curr_frame_mean_list, ind=ind, val=val, ind2=ind2, val2=val2)
+
+    def hist_laxis(self, data, n_bins,
+                   range_limits):  # https://stackoverflow.com/questions/44152436/calculate-histograms-along-axis
+        # Setup bins and determine the bin location for each element for the bins
+        R = range_limits
+        N = data.shape[-1]
+        bins = np.linspace(R[0], R[1], n_bins + 1)
+        data2D = data.reshape(-1, N)
+        idx = np.searchsorted(bins, data2D, 'right') - 1
+
+        # Some elements would be off limits, so get a mask for those
+        bad_mask = (idx == -1) | (idx == n_bins)
+
+        # We need to use bincount to get bin based counts. To have unique IDs for
+        # each row and not get confused by the ones from other rows, we need to
+        # offset each row by a scale (using row length for this).
+        scaled_idx = n_bins * np.arange(data2D.shape[0])[:, None] + idx
+
+        # Set the bad ones to be last possible index+1 : n_bins*data2D.shape[0]
+        limit = n_bins * data2D.shape[0]
+        scaled_idx[bad_mask] = limit
+
+        # Get the counts and reshape to multi-dim
+        counts = np.bincount(scaled_idx.ravel(), minlength=limit + 1)[:-1]
+        counts.shape = data.shape[:-1] + (n_bins,)
+        return counts
+
+    def show_srgb_hist(self):  # assuming the channel order is RGB
+        current_rgb_img = deepcopy(self.img_raw[self.horSlider.get()][self.verSlider.get()])
+        print("hor_ind & ver_ind")
+        print(self.horSlider.get())
+        print(self.verSlider.get())
+        current_rgb_img = current_rgb_img / (2**8 - 1)
+        current_rgb_img[:, :, 0] * 0.2126
+        current_rgb_img[:, :, 1] * 0.7152
+        current_rgb_img[:, :, 2] * 0.0722
+        current_rgb_img_ = np.sum(current_rgb_img, axis=2)
+        current_rgb_img_ = current_rgb_img_.flatten()
+        srgb_hist = self. hist_laxis(current_rgb_img_, self.num_bins,
+                   (0,1.01))
+        return srgb_hist
+
 
     def clear_rects(self):
         self.clear_rects_local()
@@ -1858,6 +1926,7 @@ class Browser:
         # self.clear_rects()
         exposures = self.exposure_class_construction_moving_object(input_ims, exposureparams)
         # exposures = exposure_class.Exposure(params = self.exposureParams)
+
         self.eV,  self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids_moving_object()
         self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
                             stepsize_limit, number_of_previous_frames)

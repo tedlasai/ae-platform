@@ -1,5 +1,7 @@
 import math
 import numpy as np
+import scipy
+
 
 class Exposure:
     def __init__(self, input_images, downsample_rate=1 / 64, r_percent=0, g_percent=1, col_num_grids=8, row_num_grids=8,
@@ -76,7 +78,7 @@ class Exposure:
         decimal_ = sqrt_rate - int(sqrt_rate)
         if decimal_ > 0.85 or decimal_ < 0.15:
             col_skip_step = round(sqrt_rate) * 2
-            row_skip_step = col_skip_step * 2
+            row_skip_step = col_skip_step
         else:
             col_skip_step = math.ceil(sqrt_rate) * 2
             row_skip_step = math.floor(sqrt_rate) * 2
@@ -452,6 +454,21 @@ class Exposure:
                 i += 1
         return opti_inds_new
 
+    def gradient_exposure(self):
+        downsampled_ims = self.downsample_blending_rgb_channels()
+        lam = 1000
+        sig = 0.06
+        dh = scipy.ndimage.sobel(downsampled_ims, axis=2) # height
+        dw = scipy.ndimage.sobel(downsampled_ims, axis=3) # width
+        d = np.hypot(dh,dw)
+        maxes = np.amax(d, axis=(2, 3))
+        d = d / 0.125
+        N = np.log(lam * (1 - sig) + 1)
+        dm = np.where(d<sig,0,(1/N)*np.log((d - sig) * lam + 1))
+        M = np.sum(dm,axis=(2,3))
+        inds= np.argmax(M, axis=1)
+
+
     def pipeline(self):
         downsampled_ims = self.downsample_blending_rgb_channels()
         grided_ims, grided_means = self.get_grided_ims(downsampled_ims)
@@ -462,9 +479,9 @@ class Exposure:
         hists_before_ds_outlier, dropped_before_ds_outlier = self.get_hists(flatten_weighted_ims_before_ds_outlier)
         weighted_means = self.get_means(dropped, flatten_weighted_ims)
         opti_inds = self.get_optimal_img_index(weighted_means)
-        opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
+        #opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
-        return opti_inds_adjusted_previous_n_frames,opti_inds_adjusted,opti_inds,weighted_means,hists,hists_before_ds_outlier
+        return opti_inds_adjusted_previous_n_frames,opti_inds,weighted_means,hists,hists_before_ds_outlier
 
     def pipeline_local_without_grids_v1(self):
         downsampled_ims = self.downsample_blending_rgb_channels()
