@@ -17,6 +17,7 @@ import high_res_auto_ex_video
 import exposure_class
 from test_pipline import local_interested_grids_generater
 
+
 mp.rcParams.update({'axes.titlesize': 14, 'font.size': 11, 'font.family': 'arial'})
 
 # Tkinter Window
@@ -189,6 +190,7 @@ class Browser:
         self.num_bins = 100
         self.hists = []
         self.hists_before_ds_outlier = []
+
         self.fig_2 = None
         self.fig = None
         self.fig_4 = None
@@ -988,7 +990,7 @@ class Browser:
                                                 number_of_previous_frames=self.exposureParams[
                                                     'number_of_previous_frames'])
             # exposures = exposure_class.Exposure(params = self.exposureParams)
-            self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
+            self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
 
         elif (self.current_auto_exposure == "Local"):
             self.clear_rects_local_wo_grids()
@@ -1009,7 +1011,7 @@ class Browser:
                                                 number_of_previous_frames=self.exposureParams[
                                                     'number_of_previous_frames']
                                                 )
-            self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
+            self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
         elif (self.current_auto_exposure == "Local without grids"):
             self.clear_rects_local()
             list_local = self.list_local_without_grids()
@@ -1028,7 +1030,7 @@ class Browser:
                                                     'number_of_previous_frames'],
                                                 global_rate=self.exposureParams['global_rate']
                                                 )
-            self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
+            self.eV,  self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
 
         elif (self.current_auto_exposure == "Local on moving objects"):
             self.clear_rects_local()
@@ -1048,14 +1050,12 @@ class Browser:
                                                     'number_of_previous_frames'],
                                                 global_rate=self.exposureParams['global_rate']
                                                 )
-            self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids_moving_object()
+            self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids_moving_object()
             print("list_local:")
             print(list_local)
         print("CURRENT AUTO EXPOSURE", self.current_auto_exposure)
         print("adjusted_by_previous_n_frames")
         print(self.eV)
-        print("adjusted_by_previous_1_frame")
-        print(self.eV_adjusted_v1)
         print("original_output")
         print(self.eV_original)
 
@@ -1858,7 +1858,7 @@ class Browser:
         # self.clear_rects()
         exposures = self.exposure_class_construction_moving_object(input_ims, exposureparams)
         # exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids_moving_object()
+        self.eV,  self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids_moving_object()
         self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
                             stepsize_limit, number_of_previous_frames)
 
@@ -1871,7 +1871,7 @@ class Browser:
         # self.clear_rects()
         exposures = self.exposure_class_construction_local(input_ims, exposureparams)
         # exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
+        self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
         self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
                             stepsize_limit, number_of_previous_frames)
 
@@ -1884,7 +1884,7 @@ class Browser:
         self.clear_rects()
         exposures = self.exposure_class_construction(input_ims, exposureparams)
         # exposures = exposure_class.Exposure(params = self.exposureParams)
-        self.eV, self.eV_adjusted_v1, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
+        self.eV,  self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
         self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
                             stepsize_limit, number_of_previous_frames)
 
