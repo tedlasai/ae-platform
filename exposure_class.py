@@ -6,9 +6,10 @@ import scipy
 class Exposure:
     def __init__(self, input_images, downsample_rate=1 / 64, r_percent=0, g_percent=1, col_num_grids=8, row_num_grids=8,
                  target_intensity=0.19, high_threshold=1, low_threshold=0, high_rate=0.2, low_rate=0.2,
-                 local_indices=[], num_hist_bins=100, local_with_downsampled_outliers=False,stepsize=3,number_of_previous_frames=5,global_rate=0):
+                 local_indices=[], num_hist_bins=100, local_with_downsampled_outliers=False, stepsize=3,
+                 number_of_previous_frames=5, global_rate=0):
         self.global_rate = global_rate
-        self.absolute_bit = 2**8  # max bit number of the raw image
+        self.absolute_bit = 2 ** 8  # max bit number of the raw image
         self.input_images = input_images
         self.downsample_rate = downsample_rate  # down sample rate of the original images, preferred value is as # 1/perfectsquare (i.e 1/36, 1/81)
         self.g_percent = g_percent  # weight of green channel
@@ -35,6 +36,7 @@ class Exposure:
         self.local_with_downsampled_outliers = local_with_downsampled_outliers  # a flag indicates if it should downsample the outlier areas when such area is the local interested area or not.("True" means it should downsample the outliers)
         self.stepsize = stepsize
         self.number_of_previous_frames = number_of_previous_frames
+
     # helper function to add two 4d arrays those might have different shape in 3red and 4th dimrntions(trim thr larger one)
     def add_two_4d_arrays(self, x, y):
         c_x = x.shape[2]
@@ -62,12 +64,12 @@ class Exposure:
     # helper function to downsample one channel
     def downsample_one_channel(self, matrix, channel, row_skip_step, col_skip_step):
         if channel == 'g1':
-            return matrix[:, :, ::row_skip_step, 1::col_skip_step] / 2 / (self.absolute_bit-1)
+            return matrix[:, :, ::row_skip_step, 1::col_skip_step] / 2 / (self.absolute_bit - 1)
         if channel == 'g2':
-            return matrix[:, :, 1::row_skip_step, ::col_skip_step] / 2 / (self.absolute_bit-1)
+            return matrix[:, :, 1::row_skip_step, ::col_skip_step] / 2 / (self.absolute_bit - 1)
         if channel == 'r':
-            return matrix[:, :, ::row_skip_step, ::col_skip_step] / (self.absolute_bit-1)
-        return matrix[:, :, 1::row_skip_step, 1::col_skip_step] / (self.absolute_bit-1)
+            return matrix[:, :, ::row_skip_step, ::col_skip_step] / (self.absolute_bit - 1)
+        return matrix[:, :, 1::row_skip_step, 1::col_skip_step] / (self.absolute_bit - 1)
 
     def downsample_blending_rgb_channels(self):
         if self.downsample_rate >= 0.75:
@@ -158,7 +160,8 @@ class Exposure:
     def get_grided_intesntiy_from_grided_ims(self, grided_imgs):
         temp_ims = np.mean(grided_imgs, axis=4)
         temp_ims = np.mean(temp_ims, axis=3)
-        grid_means = np.reshape(temp_ims, (self.num_frame, self.num_ims_per_frame, self.row_num_grids, self.col_num_grids))
+        grid_means = np.reshape(temp_ims,
+                                (self.num_frame, self.num_ims_per_frame, self.row_num_grids, self.col_num_grids))
         return grid_means
 
     def get_grided_ims(self, imgs):
@@ -169,7 +172,7 @@ class Exposure:
                     range(self.num_ims_per_frame) for j in partition_boundaries_row for i in partition_boundaries_col]
         grid_ims = np.array(grid_ims)
         grid_ims = np.reshape(grid_ims, (
-        num_frame, num_ims_per_frame, self.row_num_grids * self.col_num_grids, self.grid_h, self.grid_w))
+            num_frame, num_ims_per_frame, self.row_num_grids * self.col_num_grids, self.grid_h, self.grid_w))
         grid_means = self.get_grided_intesntiy_from_grided_ims(grid_ims)
         return grid_ims, grid_means
 
@@ -264,7 +267,7 @@ class Exposure:
         if len(self.local_indices) == 0:
             flatten_weighted_ims = ims
         else:
-            #flatten_weighted_ims = np.ones((self.num_frame, self.num_ims_per_frame, self.h , self.w)) * (-0.01)
+            # flatten_weighted_ims = np.ones((self.num_frame, self.num_ims_per_frame, self.h , self.w)) * (-0.01)
             total_pixels = self.num_frame * self.num_ims_per_frame * self.h * self.w
             flatten_weighted_ims = np.ones(total_pixels) * (-0.01)
             if self.global_rate > 0:
@@ -273,34 +276,36 @@ class Exposure:
             flatten_weighted_ims = flatten_weighted_ims.reshape(
                 (self.num_frame, self.num_ims_per_frame, self.h, self.w))
             for i in range(self.num_frame):
-                for (y_start,x_start,y_end,x_end) in self.local_indices[i]:
+                for (y_start, x_start, y_end, x_end) in self.local_indices[i]:
                     y_start = int(y_start * self.h)
                     x_start = int(x_start * self.w)
                     y_end = int(y_end * self.h)
                     x_end = int(x_end * self.w)
-                    flatten_weighted_ims[i,:,y_start:y_end+1,x_start:x_end+1] = ims[i,:,y_start:y_end+1,x_start:x_end+1]
+                    flatten_weighted_ims[i, :, y_start:y_end + 1, x_start:x_end + 1] = ims[i, :, y_start:y_end + 1,
+                                                                                       x_start:x_end + 1]
         if self.global_rate > 0:
             ind2d = np.where(flatten_weighted_ims == 2)
             flatten_weighted_ims[ind2d] = ims[ind2d]
-        flatten_weighted_ims = flatten_weighted_ims.reshape((self.num_frame, self.num_ims_per_frame, self.h*self.w))
+        flatten_weighted_ims = flatten_weighted_ims.reshape((self.num_frame, self.num_ims_per_frame, self.h * self.w))
         flatten_weighted_ims_before_outlier = np.array(flatten_weighted_ims)
         flatten_weighted_ims[flatten_weighted_ims < self.low_threshold] = -0.01
         flatten_weighted_ims[flatten_weighted_ims > self.high_threshold] = -0.01
 
-        return flatten_weighted_ims,flatten_weighted_ims_before_outlier
+        return flatten_weighted_ims, flatten_weighted_ims_before_outlier
 
     def get_flatten_weighted_imgs_local_wo_grids_moving_object_v2(self, ims):
         if len(self.local_indices) == 0:
             local_area = ims
         else:
-            local_area = np.ones((self.num_frame, self.num_ims_per_frame, self.h , self.w)) * (-0.01)
+            local_area = np.ones((self.num_frame, self.num_ims_per_frame, self.h, self.w)) * (-0.01)
             for i in range(self.num_frame):
-                for (y_start,x_start,y_end,x_end) in self.local_indices[i]:
+                for (y_start, x_start, y_end, x_end) in self.local_indices[i]:
                     y_start = int(y_start * self.h)
                     x_start = int(x_start * self.w)
                     y_end = int(y_end * self.h)
                     x_end = int(x_end * self.w)
-                    local_area[i,:,y_start:y_end+1,x_start:x_end+1] = ims[i,:,y_start:y_end+1,x_start:x_end+1]
+                    local_area[i, :, y_start:y_end + 1, x_start:x_end + 1] = ims[i, :, y_start:y_end + 1,
+                                                                             x_start:x_end + 1]
         if self.global_rate > 0:
             global_area = np.where(local_area == -0.01, ims, -0.01)
         else:
@@ -315,22 +320,21 @@ class Exposure:
         global_area[global_area < self.low_threshold] = -0.01
         global_area[global_area > self.high_threshold] = -0.01
 
-        return local_area,local_area_before_outlier,global_area,global_area_before_outlier
+        return local_area, local_area_before_outlier, global_area, global_area_before_outlier
 
     def get_flatten_weighted_imgs_local_wo_grids_v2(self, ims):
-        local_area = np.ones((self.num_frame, self.num_ims_per_frame, self.h , self.w)) * (-0.01)
+        local_area = np.ones((self.num_frame, self.num_ims_per_frame, self.h, self.w)) * (-0.01)
         for (y_start, x_start, y_end, x_end) in self.local_indices:
             y_start = int(y_start * self.h)
             x_start = int(x_start * self.w)
             y_end = int(y_end * self.h)
             x_end = int(x_end * self.w)
             local_area[:, :, y_start:y_end + 1, x_start:x_end + 1] = ims[:, :, y_start:y_end + 1,
-                                                                               x_start:x_end + 1]
+                                                                     x_start:x_end + 1]
         if self.global_rate > 0:
-            global_area = np.where(local_area == -0.01,ims,-0.01)
+            global_area = np.where(local_area == -0.01, ims, -0.01)
         else:
-            global_area = np.ones((self.num_frame, self.num_ims_per_frame, self.h , self.w)) * (-0.01)
-
+            global_area = np.ones((self.num_frame, self.num_ims_per_frame, self.h, self.w)) * (-0.01)
 
         local_area = local_area.reshape((self.num_frame, self.num_ims_per_frame, self.h * self.w))
         local_area_before_outlier = np.array(local_area)
@@ -342,7 +346,7 @@ class Exposure:
         global_area[global_area < self.low_threshold] = -0.01
         global_area[global_area > self.high_threshold] = -0.01
 
-        return local_area,local_area_before_outlier,global_area,global_area_before_outlier
+        return local_area, local_area_before_outlier, global_area, global_area_before_outlier
 
     # the following version randomly take a percentage of global areas
     def get_flatten_weighted_imgs_local_wo_grids(self, ims):
@@ -369,9 +373,10 @@ class Exposure:
         flatten_weighted_ims[flatten_weighted_ims > self.high_threshold] = -0.01
 
         return flatten_weighted_ims, flatten_weighted_ims_before_outlier
+
     def get_hists(self, flatten_weighted_ims):
         scene_hists_include_drooped_counts = self.hist_laxis(flatten_weighted_ims, self.num_hist_bins + 1, (
-        -0.01, 1.01))  # one extra bin is used to count the number of -0.01
+            -0.01, 1.01))  # one extra bin is used to count the number of -0.01
         num_dropped_pixels = scene_hists_include_drooped_counts[:, :, 0]
         scene_hists = scene_hists_include_drooped_counts[:, :, 1:]
         return scene_hists, num_dropped_pixels
@@ -421,19 +426,19 @@ class Exposure:
         abs_weighted_errs_between_means_target = np.abs(weighted_means - self.target_intensity)
         return np.argmin(abs_weighted_errs_between_means_target, axis=1)
 
-    def adjusted_opti_inds(self,opti_inds,stepsize=3):
+    def adjusted_opti_inds(self, opti_inds, stepsize=3):
         length = len(opti_inds)
         opti_inds_new = np.array(opti_inds)
         if length > 1:
-            for i in range(1,length):
-                diff = opti_inds_new[i-1] - opti_inds_new[i]
+            for i in range(1, length):
+                diff = opti_inds_new[i - 1] - opti_inds_new[i]
                 if diff < -stepsize:
-                    opti_inds_new[i] = opti_inds_new[i-1] + stepsize
+                    opti_inds_new[i] = opti_inds_new[i - 1] + stepsize
                 if diff > stepsize:
                     opti_inds_new[i] = opti_inds_new[i - 1] - stepsize
         return opti_inds_new
 
-    def adjusted_opti_inds_v2_by_average_of_previous_n_frames(self,opti_inds):
+    def adjusted_opti_inds_v2_by_average_of_previous_n_frames(self, opti_inds):
         length = len(opti_inds)
         opti_inds_new = np.array(opti_inds)
         print("# previes frames")
@@ -444,7 +449,7 @@ class Exposure:
             i = 1
             while i < length:
                 start_index = max(0, i - self.number_of_previous_frames)
-                #print("start_ind: "+str(start_index))
+                # print("start_ind: "+str(start_index))
                 average_of_previous_n_frames = np.mean(opti_inds_new[start_index:i])
                 diff = average_of_previous_n_frames - opti_inds_new[i]
                 if diff < -self.stepsize:
@@ -454,57 +459,98 @@ class Exposure:
                 i += 1
         return opti_inds_new
 
-    def gradient_exposure(self):
+    def HDR_weight_function(self, x):
+        if x <= 0.5:
+            return 2 * x
+        else:
+            return 2 - 2 * x
+
+    def build_HDR_imgs(self):
+        SCALE_LABELS = [15, 8, 6, 4, 2, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 15, 1 / 30, 1 / 60, 1 / 125, 1 / 250, 1 / 500]
+        indexes_out_of_40 = [0, 3, 4, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39]
+        downsampled_ims = self.downsample_blending_rgb_channels()
+        downsampled_ims = downsampled_ims[:,indexes_out_of_40,:,:]
+        shutter_speed_reciprocal = 1 / np.array(SCALE_LABELS)
+        weight_matrix = np.where(downsampled_ims <= 0.5, 2*downsampled_ims, 2-2*downsampled_ims)
+        weighted_ims = np.multiply(weight_matrix,downsampled_ims)
+        weighted_ims = np.multiply(weighted_ims,shutter_speed_reciprocal[None,:,None,None])
+        weighted_ims_sum = np.sum(weighted_ims, axis=1)
+        weight_matrix_sum = np.sum(weight_matrix, axis=1)
+        weight_matrix_sum = np.where(weighted_ims_sum == 0, 1, weight_matrix_sum)
+        weight_matrix_sum_reciprocal = 1/weight_matrix_sum
+        hdr_ims = np.multiply(weight_matrix_sum_reciprocal,weighted_ims_sum)
+        return hdr_ims
+
+
+    # To do: add reference paper of this method
+    def gradient_exposure_pipeline(self):
         downsampled_ims = self.downsample_blending_rgb_channels()
         lam = 1000
         sig = 0.06
-        dh = scipy.ndimage.sobel(downsampled_ims, axis=2) # height
-        dw = scipy.ndimage.sobel(downsampled_ims, axis=3) # width
-        d = np.hypot(dh,dw)
+        dh = scipy.ndimage.sobel(downsampled_ims, axis=2)  # height
+        dw = scipy.ndimage.sobel(downsampled_ims, axis=3)  # width
+        d = np.hypot(dh, dw)
         maxes = np.amax(d, axis=(2, 3))
-        d = d / 0.125
+        d = d / 0.125  # normalize
         N = np.log(lam * (1 - sig) + 1)
-        dm = np.where(d<sig,0,(1/N)*np.log((d - sig) * lam + 1))
-        M = np.sum(dm,axis=(2,3))
-        inds= np.argmax(M, axis=1)
+        d = np.where(d < sig, sig, d)
+        #dm = np.where(d <= sig, 0, (1 / N) * np.log((d - sig) * lam + 1))
+        dm = (1 / N) * np.log((d - sig) * lam + 1)
+        M = np.sum(dm, axis=(2, 3))
+        opti_inds = np.argmax(M, axis=1)
 
+        grided_ims, grided_means = self.get_grided_ims(downsampled_ims)
+        weights, weights_before_ds_outlier = self.get_grids_weight_matrix(grided_means)
+        flatten_weighted_ims = self.get_flatten_weighted_imgs(weights, grided_ims)
+        flatten_weighted_ims_before_ds_outlier = self.get_flatten_weighted_imgs(weights_before_ds_outlier, grided_ims)
+        hists, dropped = self.get_hists(flatten_weighted_ims)
+        hists_before_ds_outlier, dropped_before_ds_outlier = self.get_hists(flatten_weighted_ims_before_ds_outlier)
+        weighted_means = self.get_means(dropped, flatten_weighted_ims)
+        opti_inds_mean_approach = self.get_optimal_img_index(weighted_means)
+        print(opti_inds)
+        print("gradient------mean")
+        print(opti_inds_mean_approach)
+        opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
+        return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
 
     def pipeline(self):
         downsampled_ims = self.downsample_blending_rgb_channels()
         grided_ims, grided_means = self.get_grided_ims(downsampled_ims)
-        weights,weights_before_ds_outlier = self.get_grids_weight_matrix(grided_means)
+        weights, weights_before_ds_outlier = self.get_grids_weight_matrix(grided_means)
         flatten_weighted_ims = self.get_flatten_weighted_imgs(weights, grided_ims)
         flatten_weighted_ims_before_ds_outlier = self.get_flatten_weighted_imgs(weights_before_ds_outlier, grided_ims)
         hists, dropped = self.get_hists(flatten_weighted_ims)
         hists_before_ds_outlier, dropped_before_ds_outlier = self.get_hists(flatten_weighted_ims_before_ds_outlier)
         weighted_means = self.get_means(dropped, flatten_weighted_ims)
         opti_inds = self.get_optimal_img_index(weighted_means)
-        #opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
+        # opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
-        return opti_inds_adjusted_previous_n_frames,opti_inds,weighted_means,hists,hists_before_ds_outlier
+        return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
 
     def pipeline_local_without_grids_v1(self):
         downsampled_ims = self.downsample_blending_rgb_channels()
         # grided_ims, grided_means = self.get_grided_ims(downsampled_ims)
         # weights,weights_before_ds_outlier = self.get_grids_weight_matrix(grided_means)
-        flatten_weighted_ims,flatten_weighted_ims_before_outlier = self.get_flatten_weighted_imgs_local_wo_grids(downsampled_ims)
+        flatten_weighted_ims, flatten_weighted_ims_before_outlier = self.get_flatten_weighted_imgs_local_wo_grids(
+            downsampled_ims)
 
-        #flatten_weighted_ims_before_ds_outlier = self.get_flatten_weighted_imgs(weights_before_ds_outlier, grided_ims)
+        # flatten_weighted_ims_before_ds_outlier = self.get_flatten_weighted_imgs(weights_before_ds_outlier, grided_ims)
         hists, dropped = self.get_hists(flatten_weighted_ims)
         hists_before_ds_outlier, dropped_before_ds_outlier = self.get_hists(flatten_weighted_ims_before_outlier)
         weighted_means = self.get_means(dropped, flatten_weighted_ims)
         opti_inds = self.get_optimal_img_index(weighted_means)
-        #opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
+        # opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
-        return opti_inds_adjusted_previous_n_frames,opti_inds,weighted_means,hists,hists_before_ds_outlier
+        return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
 
     def pipeline_local_without_grids(self):
         downsampled_ims = self.downsample_blending_rgb_channels()
         # grided_ims, grided_means = self.get_grided_ims(downsampled_ims)
         # weights,weights_before_ds_outlier = self.get_grids_weight_matrix(grided_means)
-        local_area,local_area_before_outlier,global_area,global_area_before_outlier = self.get_flatten_weighted_imgs_local_wo_grids_v2(downsampled_ims)
+        local_area, local_area_before_outlier, global_area, global_area_before_outlier = self.get_flatten_weighted_imgs_local_wo_grids_v2(
+            downsampled_ims)
 
-        #flatten_weighted_ims_before_ds_outlier = self.get_flatten_weighted_imgs(weights_before_ds_outlier, grided_ims)
+        # flatten_weighted_ims_before_ds_outlier = self.get_flatten_weighted_imgs(weights_before_ds_outlier, grided_ims)
 
         local_hists, local_dropped = self.get_hists(local_area)
         local_hists_before_ds_outlier, local_dropped_before_ds_outlier = self.get_hists(local_area_before_outlier)
@@ -512,7 +558,8 @@ class Exposure:
 
         if self.global_rate > 0:
             global_hists, global_dropped = self.get_hists(global_area)
-            global_hists_before_ds_outlier, global_dropped_before_ds_outlier = self.get_hists(global_area_before_outlier)
+            global_hists_before_ds_outlier, global_dropped_before_ds_outlier = self.get_hists(
+                global_area_before_outlier)
             global_weighted_means = self.get_means(global_dropped, global_area)
 
             local_weight = 1 - self.global_rate
@@ -526,16 +573,15 @@ class Exposure:
             weighted_means = local_weighted_means
 
         opti_inds = self.get_optimal_img_index(weighted_means)
-        #opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
+        # opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
-        return opti_inds_adjusted_previous_n_frames,opti_inds,weighted_means,hists,hists_before_ds_outlier
-
+        return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
 
     def pipeline_local_without_grids_moving_object(self):
         downsampled_ims = self.downsample_blending_rgb_channels()
         # grided_ims, grided_means = self.get_grided_ims(downsampled_ims)
         # weights,weights_before_ds_outlier = self.get_grids_weight_matrix(grided_means)
-        local_area,local_area_before_outlier,global_area,global_area_before_outlier = self.get_flatten_weighted_imgs_local_wo_grids_moving_object_v2(
+        local_area, local_area_before_outlier, global_area, global_area_before_outlier = self.get_flatten_weighted_imgs_local_wo_grids_moving_object_v2(
             downsampled_ims)
 
         # flatten_weighted_ims_before_ds_outlier = self.get_flatten_weighted_imgs(weights_before_ds_outlier, grided_ims)
@@ -559,7 +605,7 @@ class Exposure:
             hists_before_ds_outlier = local_hists_before_ds_outlier
             weighted_means = local_weighted_means
         opti_inds = self.get_optimal_img_index(weighted_means)
-        #opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
+        # opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
         return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
 
@@ -575,6 +621,6 @@ class Exposure:
         hists_before_ds_outlier, dropped_before_ds_outlier = self.get_hists(flatten_weighted_ims_before_outlier)
         weighted_means = self.get_means(dropped, flatten_weighted_ims)
         opti_inds = self.get_optimal_img_index(weighted_means)
-        #opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
+        # opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
         return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier

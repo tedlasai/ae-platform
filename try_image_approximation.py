@@ -4,14 +4,14 @@ import time
 import cv2
 import numpy as np
 import rawpy
-from simple_camera_pipeline_sept.python.pipeline import run_pipeline_v2,get_metadata
+from simple_camera_pipeline.python.pipeline import run_pipeline_v2,get_metadata
 
 SCALE_LABELS = [15,8,6,4,2,1,1/2,1/4,1/8,1/15,1/30,1/60,1/125,1/250,1/500]
 NEW_SCALES = [15,13,10,8,6,5,4,3.2,2.5,2,1.6,1.3,1,0.8,0.6,0.5,0.4,0.3,1/4,1/5,1/6,1/8,1/10,1/13,1/15,1/20,1/25,1/30,1/40,1/50,1/60,1/80,1/100,1/125,1/160,1/200,1/250,1/320,1/400,1/500]
 means = []
 NUMBER_OF_IMAGES_PER_STACK = len(SCALE_LABELS)
 NUMBER_OF_IMAGES_PER_STACK_NEW = len(NEW_SCALES)
-TOTAL_IMS = 100* NUMBER_OF_IMAGES_PER_STACK_NEW
+TOTAL_IMS = 100 * NUMBER_OF_IMAGES_PER_STACK_NEW
 
 #image 3 4", 4 2", 5 1", approximate 4 with 3 and 5,
 def one_pixel_function(im1,im2,x1,x2,targetx):
@@ -105,7 +105,7 @@ def make_raw_im_show_data_one_im(c1,c2,c3,c4,shape0,shape1,im_path):
     params = {
         'input_stage': 'raw',
         #             # options: 'raw', 'normal', 'white_balance', 'demosaic', 'xyz', 'srgb', 'gamma', 'tone'
-        'output_stage': 'tone',
+        'output_stage': 'gamma',
         #             # options: 'normal', 'white_balance', 'demosaic', 'xyz', 'srgb', 'gamma', 'tone'
         'demosaic_type': 'EA'
     }
@@ -174,8 +174,8 @@ def save_im(raw_bayer,im_path):
 
 start_time = time.time()
 
-read_path = 'E:/Scene21_ReflectiveHoleSpotting_dng/'
-scene_num = '18'
+read_path = 'D:/pngs/Scene3/'
+scene_num = '3'
 
 save_loc = os.path.join(os.path.dirname(__file__), 'Image_Arrays_exposure_separate')
 os.makedirs(save_loc, exist_ok=True)
@@ -200,9 +200,9 @@ else:
 #     # one_stack_isos_temp_list = []
 #     # one_stack_shutter_speeds_temp_list = []
     count = 0
-    #count = 80
+    #count = 21*40
     i = 0
-    #i = 30
+    #i = 21*15
     j = i+1
     k = 0
     image_path1 = images[i]
@@ -231,8 +231,11 @@ else:
                 # list_of_ims.append(one_stack_ims_temp_list)
                 # list_of_ims_show.append(show_one_stack_ims_temp_list)
                 frame_number = count // NUMBER_OF_IMAGES_PER_STACK_NEW
-                np.save(save_loc + joinPathChar + 'Scene' + scene_num + '_ds_raw_imgs' + str(frame_number), np.asarray(one_stack_ims_temp_list))
-                np.save(save_loc_show + joinPathChar + 'Scene' + scene_num +'_show_dng_imgs'+ str(frame_number),
+                frame_number_s = str(frame_number)
+                if len(frame_number_s) == 1:
+                    frame_number_s = '0' + frame_number_s
+                np.save(save_loc + joinPathChar + 'Scene' + scene_num + '_ds_raw_imgs' + frame_number_s, np.asarray(one_stack_ims_temp_list))
+                np.save(save_loc_show + joinPathChar + 'Scene' + scene_num +'_show_dng_imgs'+ frame_number_s,
                         np.asarray(show_one_stack_ims_temp_list))
                 one_stack_ims_temp_list=[]
                 show_one_stack_ims_temp_list=[]

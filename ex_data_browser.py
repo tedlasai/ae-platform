@@ -46,7 +46,7 @@ class Browser:
                       'Scene16', 'Scene17', 'Scene18', 'Scene19', 'Scene20', 'Scene21']
         self.frame_num = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
                           100, 100, 100, 100, 100]  # number of frames per position
-        self.stack_size = [40, 15, 15, 15, 15, 15, 15, 15, 15, 40, 15, 15, 15, 15, 15, 15, 15,
+        self.stack_size = [40, 15, 40, 15, 15, 15, 15, 15, 15, 40, 15, 15, 15, 15, 15, 40, 15,
                            40, 40, 40, 40]  # number of shutter options per position
 
         self.SCALE_LABELS = {
@@ -111,7 +111,7 @@ class Browser:
         self.NEW_SCALES = [15,13,10,8,6,5,4,3.2,2.5,2,1.6,1.3,1,0.8,0.6,0.5,0.4,0.3,1/4,1/5,1/6,1/8,1/10,1/13,1/15,1/20,1/25,1/30,1/40,1/50,1/60,1/80,1/100,1/125,1/160,1/200,1/250,1/320,1/400,1/500]
 
         self.eV = []
-        self.auto_exposures = ["None", "Global", "Local", 'Local without grids', 'Local on moving objects']
+        self.auto_exposures = ["None", "Global", "Local", 'Local without grids', 'Local on moving objects','Max Gradient']
         self.current_auto_exposure = "None"
 
         self.scene_index = 0
@@ -658,9 +658,9 @@ class Browser:
         self.fig_2.tight_layout()
         sum_c1 = max(sum(count1), 1)
 
-        print(count1)
-        print("=========")
-        print(count2)
+        # print(count1)
+        # print("=========")
+        # print(count2)
         sum_c2 = max(sum(count2), 1)
         sum_c3 = max(sum(count3), 1)
         vals1 = count1 / sum_c1
@@ -1008,7 +1008,23 @@ class Browser:
                                                 number_of_previous_frames=self.exposureParams[
                                                     'number_of_previous_frames'])
             # exposures = exposure_class.Exposure(params = self.exposureParams)
+            x = exposures.build_HDR_imgs()
             self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
+
+        elif (self.current_auto_exposure == "Max Gradient"):
+            self.clear_rects()
+            exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"],
+                                                r_percent=self.exposureParams['r_percent'],
+                                                g_percent=self.exposureParams['g_percent'],
+                                                low_threshold=0,
+                                                low_rate=0,
+                                                high_threshold=1.0,
+                                                high_rate=0,
+                                                stepsize=self.exposureParams['stepsize'],
+                                                number_of_previous_frames=self.exposureParams[
+                                                    'number_of_previous_frames'])
+            # exposures = exposure_class.Exposure(params = self.exposureParams)
+            self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.gradient_exposure_pipeline()
 
         elif (self.current_auto_exposure == "Local"):
             self.clear_rects_local_wo_grids()
@@ -1048,7 +1064,7 @@ class Browser:
                                                     'number_of_previous_frames'],
                                                 global_rate=self.exposureParams['global_rate']
                                                 )
-            exposures.gradient_exposure()
+            #exposures.gradient_exposure()
             self.eV,  self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
 
         elif (self.current_auto_exposure == "Local on moving objects"):
@@ -1070,13 +1086,13 @@ class Browser:
                                                 global_rate=self.exposureParams['global_rate']
                                                 )
             self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids_moving_object()
-            print("list_local:")
-            print(list_local)
-        print("CURRENT AUTO EXPOSURE", self.current_auto_exposure)
-        print("adjusted_by_previous_n_frames")
-        print(self.eV)
-        print("original_output")
-        print(self.eV_original)
+            # print("list_local:")
+            # print(list_local)
+        # print("CURRENT AUTO EXPOSURE", self.current_auto_exposure)
+        # print("adjusted_by_previous_n_frames")
+        # print(self.eV)
+        # print("original_output")
+        # print(self.eV_original)
 
     def list_local_without_grids(self):
         list_ = []
@@ -1204,12 +1220,12 @@ class Browser:
             first_ind = self.temp_img_ind // stack_size
             send_ind = self.temp_img_ind % stack_size
             count1 = self.hists[first_ind][send_ind]
-            print("current srgb hist check")
-            print(self.show_srgb_hist_check)
+            # print("current srgb hist check")
+            # print(self.show_srgb_hist_check)
             if self.show_srgb_hist_check == 1:
-                print("here")
+                # print("here")
                 count2 = self.show_srgb_hist()
-                print(count2)
+                # print(count2)
             else:
                 count2 = self.hists_before_ds_outlier[first_ind][send_ind]
 
@@ -1347,9 +1363,9 @@ class Browser:
         if self.current_auto_exposure == "Local on moving objects":
             self.curX = self.start_x
             self.curY = self.start_y
-            print("here")
+
             for i, r in enumerate(self.moving_rectids):
-                print("herehere")
+
                 r_start_x, r_start_y, r_end_x, r_end_y = self.canvas.coords(r)
                 if r_start_x <= self.start_x <= r_end_x and r_start_y <= self.start_y <= r_end_y:
                     self.the_moving_rect = r
@@ -1435,9 +1451,9 @@ class Browser:
         self.start_y = self.canvas.canvasy(event.y)
         self.curX = self.start_x
         self.curY = self.start_y
-        print("here")
+
         for i, r in enumerate(self.moving_rectids):
-            print("herehere")
+
             r_start_x, r_start_y, r_end_x, r_end_y = self.canvas.coords(r)
             # r_start_y ,r_start_x,r_end_y,r_end_x   = self.rects[i]
             if r_start_x <= self.start_x <= r_end_x and r_start_y <= self.start_y <= r_end_y:
