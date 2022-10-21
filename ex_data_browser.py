@@ -1034,6 +1034,7 @@ class Browser:
                                                     'number_of_previous_frames'])
             # exposures = exposure_class.Exposure(params = self.exposureParams)
             x = exposures.build_HDR_imgs()
+            y = exposures.get_max_area_exposure_time(x)
             self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
 
         elif (self.current_auto_exposure == "Max Gradient"):

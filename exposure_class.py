@@ -36,6 +36,10 @@ class Exposure:
         self.local_with_downsampled_outliers = local_with_downsampled_outliers  # a flag indicates if it should downsample the outlier areas when such area is the local interested area or not.("True" means it should downsample the outliers)
         self.stepsize = stepsize
         self.number_of_previous_frames = number_of_previous_frames
+        self.SCALE_LABELS = [15, 8, 6, 4, 2, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 15, 1 / 30, 1 / 60, 1 / 125, 1 / 250, 1 / 500]
+        self.indexes_out_of_40 = [0, 3, 4, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39]
+        self.NEW_SCALES = [15,13,10,8,6,5,4,3.2,2.5,2,1.6,1.3,1,0.8,0.6,0.5,0.4,0.3,1/4,1/5,1/6,1/8,1/10,1/13,1/15,1/20,1/25,1/30,1/40,1/50,1/60,1/80,1/100,1/125,1/160,1/200,1/250,1/320,1/400,1/500]
+
 
     # helper function to add two 4d arrays those might have different shape in 3red and 4th dimrntions(trim thr larger one)
     def add_two_4d_arrays(self, x, y):
@@ -482,11 +486,11 @@ class Exposure:
     #     return hdr_ims
 
     def build_HDR_imgs(self):
-        SCALE_LABELS = [15, 8, 6, 4, 2, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 15, 1 / 30, 1 / 60, 1 / 125, 1 / 250, 1 / 500]
-        indexes_out_of_40 = [0, 3, 4, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39]
+        # SCALE_LABELS = [15, 8, 6, 4, 2, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 15, 1 / 30, 1 / 60, 1 / 125, 1 / 250, 1 / 500]
+        # indexes_out_of_40 = [0, 3, 4, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39]
         downsampled_ims = self.downsample_blending_rgb_channels()
-        downsampled_ims = downsampled_ims[:,indexes_out_of_40,:,:]
-        shutter_speed_reciprocal = 1 / np.array(SCALE_LABELS)
+        downsampled_ims = downsampled_ims[:,self.indexes_out_of_40,:,:]
+        shutter_speed_reciprocal = 1 / np.array(self.SCALE_LABELS)
         weight_matrix = np.where(downsampled_ims <= 0.5, 2*downsampled_ims, 2-2*downsampled_ims)
         weight_matrix_sum = np.sum(weight_matrix, axis=1)
         weight_matrix = weight_matrix/weight_matrix_sum[:, None, :, :]
@@ -498,6 +502,40 @@ class Exposure:
         weight_matrix_sum_reciprocal = 1/weight_matrix_sum
         hdr_ims = np.multiply(weight_matrix_sum_reciprocal,weighted_ims_sum)
         return hdr_ims
+
+    def get_max_area_exposure_time(self,hdr_ims):
+        black_level = 0.02  # to be changed
+        white_level = 0.9   # to be changed
+        new_scales_reciprocal = 1 / np.array(self.NEW_SCALES)
+        self.minHDR = np.ones(len(self.NEW_SCALES)) * black_level
+        self.maxHDR = np.ones(len(self.NEW_SCALES)) * white_level
+        print(self.maxHDR)
+        print("***")
+        self.minHDR = np.multiply(self.minHDR, new_scales_reciprocal)
+        self.maxHDR = np.multiply(self.maxHDR, new_scales_reciprocal)
+        print(self.maxHDR)
+        x, y, z = hdr_ims.shape
+        ims = hdr_ims.reshape(x, y * z)
+        hdr_slot_sums = np.apply_along_axis(self.get_max_area_exposure_time_one_flatten_frame, 1, ims)
+        result = np.argmax(hdr_slot_sums,axis=1)
+        return result
+
+
+    def get_max_area_exposure_time_one_flatten_frame(self,im):
+        result = []
+        for i in range(len(self.minHDR)):
+            result.append([])
+            max_ = self.maxHDR[i]
+            min_ = self.minHDR[i]
+            in_ranged = np.where(im <= max_, im, 0)
+            in_ranged = np.where(in_ranged >= min_, in_ranged, 0)
+            result[i].append(np.sum(in_ranged))
+        return np.array(result)
+
+
+
+
+
 
 
     # To do: add reference paper of this method
