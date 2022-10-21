@@ -81,7 +81,11 @@ def make_npy_data_for_algorithem_one_im(c1,c2,c3,c4,shape0,shape1):
     raw_bayer_downscaled[1::2, ::2] = c2_
     raw_bayer_downscaled[::2, 1::2] = c3_
     raw_bayer_downscaled[1::2, 1::2] = c4_
-    raw_bayer_downscaled = np.right_shift(raw_bayer_downscaled, 6)
+    #raw_bayer_downscaled = np.right_shift(raw_bayer_downscaled, 6)
+    black_level = 512
+    white_level = 14008
+    raw_bayer_downscaled = np.clip(raw_bayer_downscaled,black_level,white_level)
+    raw_bayer_downscaled = ((raw_bayer_downscaled-black_level)/(white_level - black_level)) * 255
     raw_bayer_downscaled = raw_bayer_downscaled.astype(np.uint8)
     return raw_bayer_downscaled
 
