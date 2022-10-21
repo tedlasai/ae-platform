@@ -465,6 +465,22 @@ class Exposure:
         else:
             return 2 - 2 * x
 
+    # def build_HDR_imgs(self):
+    #     SCALE_LABELS = [15, 8, 6, 4, 2, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 15, 1 / 30, 1 / 60, 1 / 125, 1 / 250, 1 / 500]
+    #     indexes_out_of_40 = [0, 3, 4, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39]
+    #     downsampled_ims = self.downsample_blending_rgb_channels()
+    #     downsampled_ims = downsampled_ims[:, indexes_out_of_40, :, :]
+    #     shutter_speed_reciprocal = 1 / np.array(SCALE_LABELS)
+    #     weight_matrix = np.where(downsampled_ims <= 0.5, 2 * downsampled_ims, 2 - 2 * downsampled_ims)
+    #     weighted_ims = np.multiply(weight_matrix, downsampled_ims)
+    #     weighted_ims = np.multiply(weighted_ims, shutter_speed_reciprocal[None, :, None, None])
+    #     weighted_ims_sum = np.sum(weighted_ims, axis=1)
+    #     weight_matrix_sum = np.sum(weight_matrix, axis=1)
+    #     weight_matrix_sum = weight_matrix_sum + 0.00001
+    #     weight_matrix_sum_reciprocal = 1 / weight_matrix_sum
+    #     hdr_ims = np.multiply(weight_matrix_sum_reciprocal, weighted_ims_sum)
+    #     return hdr_ims
+
     def build_HDR_imgs(self):
         SCALE_LABELS = [15, 8, 6, 4, 2, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 15, 1 / 30, 1 / 60, 1 / 125, 1 / 250, 1 / 500]
         indexes_out_of_40 = [0, 3, 4, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39]
@@ -472,11 +488,13 @@ class Exposure:
         downsampled_ims = downsampled_ims[:,indexes_out_of_40,:,:]
         shutter_speed_reciprocal = 1 / np.array(SCALE_LABELS)
         weight_matrix = np.where(downsampled_ims <= 0.5, 2*downsampled_ims, 2-2*downsampled_ims)
+        weight_matrix_sum = np.sum(weight_matrix, axis=1)
+        weight_matrix = weight_matrix/weight_matrix_sum[:, None, :, :]
         weighted_ims = np.multiply(weight_matrix,downsampled_ims)
         weighted_ims = np.multiply(weighted_ims,shutter_speed_reciprocal[None,:,None,None])
         weighted_ims_sum = np.sum(weighted_ims, axis=1)
-        weight_matrix_sum = np.sum(weight_matrix, axis=1)
-        weight_matrix_sum = np.where(weighted_ims_sum == 0, 1, weight_matrix_sum)
+
+        weight_matrix_sum = weight_matrix_sum+0.00001
         weight_matrix_sum_reciprocal = 1/weight_matrix_sum
         hdr_ims = np.multiply(weight_matrix_sum_reciprocal,weighted_ims_sum)
         return hdr_ims

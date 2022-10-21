@@ -46,7 +46,7 @@ class Browser:
                       'Scene16', 'Scene17', 'Scene18', 'Scene19', 'Scene20', 'Scene21']
         self.frame_num = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
                           100, 100, 100, 100, 100]  # number of frames per position
-        self.stack_size = [40, 15, 40, 15, 15, 15, 15, 15, 15, 40, 15, 15, 15, 15, 15, 40, 15,
+        self.stack_size = [40, 15, 40, 15, 15, 15, 15, 15, 15, 40, 40, 15, 15, 15, 15, 40, 15,
                            40, 40, 40, 40]  # number of shutter options per position
 
         self.SCALE_LABELS = {
@@ -196,6 +196,8 @@ class Browser:
         self.fig = None
         self.fig_4 = None
         self.local_consider_outliers_check = 0
+        self.show_srgb_hist_check = 0
+        self.srgb_mean = 0
         self.init_functions()
         self.show_srgb_hist_check = self.show_srgb_hist_check_.get()
 
@@ -286,6 +288,21 @@ class Browser:
             # self.moving_rectids = []
             print("the dict of interests")
             print(self.rects_without_grids_moving_objests)
+
+    def draw_interested_moving_areas_per_frame(self):
+        w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
+        curr_frame = self.horSlider.get()
+        try:
+            rect_coordis = self.the_moving_area_list[curr_frame]
+            self.clear_moving_rects()
+            for coords in rect_coordis:
+                a,b,c,d = coords[1]*w, coords[0]*h, coords[3]*w, coords[2]*h
+                rect = self.canvas.create_rectangle(a, b, c, d, outline='violet')
+                self.moving_rectids.append(rect)
+        except:
+            pass
+
+
 
     def save_interested_moving_objects_button(self):
         self.movingObjectButton = tk.Button(root, text='Save Interested Area', fg='#ffffff', bg='#999999',
@@ -632,7 +649,10 @@ class Browser:
 
         axes[1].bar(bins, count2, align='center')
         axes[0].bar(bins, count1, align='center')
-        axes[1].set_title('histogram with outlier', **font)
+        if self.show_srgb_hist_check == 1:
+            axes[1].set_title('srgb histogram', **font)
+        else:
+            axes[1].set_title('histogram with outlier', **font)
         axes[0].set_title('histogram without outlier', **font)
 
         self.fig_2.canvas.draw()
@@ -669,7 +689,12 @@ class Browser:
         if ind == ind2:
             color1 = 'blue'
             axes[1].bar(bins, vals2, align='center', color=color1)
-            axes[1].set_title('histogram with outlier', **font)
+            if self.show_srgb_hist_check == 1:
+                axes[1].set_title('srgb histogram', **font)
+                axes[1].text(70, 0.2, '( mean: ' + str("%.2f" % self.srgb_mean) + ')', color='blue',
+                         fontsize=13,position=(70,0.2))
+            else:
+                axes[1].set_title('histogram with outlier', **font)
             axes[0].set_title('histogram without outlier', **font)
             for i, x in enumerate(vals2):
                 if x > 0.25:
@@ -1143,6 +1168,7 @@ class Browser:
                 # for (y_start,x_strat,y_end,x_end) in self.rects_without_grids_moving_objests[i]:
                 #     list__.append([y_start/h,x_strat/w,y_end/h,x_end/w])
                 # list_.append(list__)
+        self.the_moving_area_list = list_.copy()
         return list_
 
     def playVideo(self):
@@ -1224,7 +1250,7 @@ class Browser:
             # print(self.show_srgb_hist_check)
             if self.show_srgb_hist_check == 1:
                 # print("here")
-                count2 = self.show_srgb_hist()
+                count2, self.srgb_mean = self.show_srgb_hist()
                 # print(count2)
             else:
                 count2 = self.hists_before_ds_outlier[first_ind][send_ind]
@@ -1250,6 +1276,8 @@ class Browser:
         # self.hist_plot(count1=count1, count2=count2)
         self.hist_plot_three(count1=count1, count2=count2, count3=count3, stack_size=stack_size,
                              curr_frame_mean_list=curr_frame_mean_list, ind=ind, val=val, ind2=ind2, val2=val2)
+        if self.current_auto_exposure == "Local on moving objects":
+            self.draw_interested_moving_areas_per_frame()
 
     def hist_laxis(self, data, n_bins,
                    range_limits):  # https://stackoverflow.com/questions/44152436/calculate-histograms-along-axis
@@ -1283,25 +1311,67 @@ class Browser:
         print(self.horSlider.get())
         print(self.verSlider.get())
         current_rgb_img = current_rgb_img / (2**8 - 1)
-        current_rgb_img[:, :, 0] * 0.2126
-        current_rgb_img[:, :, 1] * 0.7152
-        current_rgb_img[:, :, 2] * 0.0722
+        current_rgb_img[:, :, 0] = current_rgb_img[:, :, 0] * 0.2126
+        current_rgb_img[:, :, 1] = current_rgb_img[:, :, 1] * 0.7152
+        current_rgb_img[:, :, 2] = current_rgb_img[:, :, 2] * 0.0722
         current_rgb_img_ = np.sum(current_rgb_img, axis=2)
-        current_rgb_img_ = current_rgb_img_.flatten()
-        srgb_hist = self. hist_laxis(current_rgb_img_, self.num_bins,
-                   (0,1.01))
-        return srgb_hist
 
+        if self.current_auto_exposure == "Local on moving objects" and len(self.the_moving_area_list) > 0:
+            interested_boundaries = self.the_moving_area_list[self.horSlider.get()]
+            temp_img = np.ones(current_rgb_img_.shape)*(-0.01)
+            h,w = current_rgb_img_.shape
+            #w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
+            for coord in interested_boundaries:
+                w_start = int(coord[1]*w)
+                h_start = int(coord[0]*h)
+                w_end = min(int(coord[3]*w)+1,w+1)
+                h_end = min(int(coord[2]*h)+1,h+1)
+                print("********")
+                print(w_start)
+                print(w_end)
+                print(h_start)
+                print(h_end)
+                print(w)
+                print(h)
+                print("--------------")
+                temp_img[h_start:h_end,w_start:w_end] = current_rgb_img_[h_start:h_end,w_start:w_end]
+            temp_img = temp_img.flatten()
+            srgb_hist,dropped = self.get_hists(temp_img)
+            mean = self.get_means(dropped, temp_img)
+            print("xx")
+        else:
+            mean = np.mean(current_rgb_img_)
+            current_rgb_img_ = current_rgb_img_.flatten()
+            srgb_hist = self.hist_laxis(current_rgb_img_, self.num_bins,
+                                        (0, 1.01))
+        return srgb_hist,mean
+
+    def get_hists(self, flatten_weighted_ims):
+        scene_hists_include_drooped_counts = self.hist_laxis(flatten_weighted_ims, self.num_bins + 1, (
+            -0.01, 1.01))  # one extra bin is used to count the number of -0.01
+        num_dropped_pixels = scene_hists_include_drooped_counts[0]
+        scene_hists = scene_hists_include_drooped_counts[1:]
+        return scene_hists, num_dropped_pixels
+
+    def get_means(self, num_dropped_pixels, flatten_weighted_ims):
+        weighted_all_means = np.mean(flatten_weighted_ims)
+        if num_dropped_pixels == 0:
+            return weighted_all_means
+        c = len(flatten_weighted_ims)
+        mean = (c*weighted_all_means + 0.01*num_dropped_pixels)/(c-num_dropped_pixels)
+        return mean
 
     def clear_rects(self):
         self.clear_rects_local()
         self.clear_rects_local_wo_grids()
         self.clear_moving_rects()
+        self.the_moving_area_list = []
 
     def clear_moving_rects(self):
         for rect in self.moving_rectids:
             self.canvas.delete(rect)
         self.moving_rectids = []
+        #self.the_moving_area_list = []
 
     def clear_rects_local(self):
         self.rectangles = []
