@@ -504,8 +504,8 @@ class Exposure:
         return hdr_ims
 
     def get_max_area_exposure_time(self,hdr_ims):
-        black_level = 0.02  # to be changed
-        white_level = 0.9   # to be changed
+        black_level = 0  # 511.7
+        white_level = 0.95   # to be changed
         new_scales_reciprocal = 1 / np.array(self.NEW_SCALES)
         self.minHDR = np.ones(len(self.NEW_SCALES)) * black_level
         self.maxHDR = np.ones(len(self.NEW_SCALES)) * white_level
@@ -527,9 +527,12 @@ class Exposure:
             result.append([])
             max_ = self.maxHDR[i]
             min_ = self.minHDR[i]
-            in_ranged = np.where(im <= max_, im, 0)
-            in_ranged = np.where(in_ranged >= min_, in_ranged, 0)
-            result[i].append(np.sum(in_ranged))
+            # in_ranged = np.where(im <= max_, im, -0.1)
+            # in_ranged = np.where(in_ranged >= min_, in_ranged, -0.1)
+            # count = len(np.where(in_ranged >= 0))
+            count = np.count_nonzero((im >= min_) & (im <= max_))
+            #result[i].append(np.sum(in_ranged))
+            result[i].append(count)
         return np.array(result)
 
 
