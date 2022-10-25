@@ -559,8 +559,51 @@ class Exposure:
 
 
     # To do: add reference paper of this method
-    def gradient_exposure_pipeline(self):
+    def gradient_srgb_exposure_pipeline(self):
+        # downsampled_ims = self.downsample_blending_rgb_channels()
+        # downsampled_ims = downsampled_ims**(1/3.4)\
+        raw_bayer = np.load(self.input_images)
+        raw_bayer = raw_bayer[:,:,::8,::8,:]
+        current_rgb_img = raw_bayer / (2**8 - 1)
+        current_rgb_img[:, :, :, :, 0] = current_rgb_img[:, :, :, :, 0] * 0.2126
+        current_rgb_img[:, :, :, :, 1] = current_rgb_img[:, :, :, :, 1] * 0.7152
+        current_rgb_img[:, :, :, :, 2] = current_rgb_img[:, :, :, :, 2] * 0.0722
+        downsampled_ims = np.sum(current_rgb_img, axis=4)
+        lam = 1000
+        sig = 0.06
+        dh = scipy.ndimage.sobel(downsampled_ims, axis=2)  # height
+        dw = scipy.ndimage.sobel(downsampled_ims, axis=3)  # width
+        d = np.hypot(dh, dw)
+        maxes = np.amax(d, axis=(2, 3))
+        d = d / 0.125  # normalize
+        N = np.log(lam * (1 - sig) + 1)
+        d = np.where(d < sig, sig, d)
+        #dm = np.where(d <= sig, 0, (1 / N) * np.log((d - sig) * lam + 1))
+        dm = (1 / N) * np.log((d - sig) * lam + 1)
+        M = np.sum(dm, axis=(2, 3))
+        opti_inds = np.argmax(M, axis=1)
+
+        # grided_ims, grided_means = self.get_grided_ims(downsampled_ims)
+        # weights, weights_before_ds_outlier = self.get_grids_weight_matrix(grided_means)
+        # flatten_weighted_ims = self.get_flatten_weighted_imgs(weights, grided_ims)
+        # flatten_weighted_ims_before_ds_outlier = self.get_flatten_weighted_imgs(weights_before_ds_outlier, grided_ims)
+        # hists, dropped = self.get_hists(flatten_weighted_ims)
+        # hists_before_ds_outlier, dropped_before_ds_outlier = self.get_hists(flatten_weighted_ims_before_ds_outlier)
+        # weighted_means = self.get_means(dropped, flatten_weighted_ims)
+        # opti_inds_mean_approach = self.get_optimal_img_index(weighted_means)
+        # print(opti_inds)
+        # print("gradient------mean")
+        # print(opti_inds_mean_approach)
+        weighted_means = np.zeros((100,40))
+        hists = np.zeros((100,40,101))
+        hists_before_ds_outlier = np.zeros((100,40,101))
+        opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
+        return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
+
+    def gradient_raw_exposure_pipeline(self):
         downsampled_ims = self.downsample_blending_rgb_channels()
+        downsampled_ims = downsampled_ims**(1/3.4)  # to fit our pipeline
+
         lam = 1000
         sig = 0.06
         dh = scipy.ndimage.sobel(downsampled_ims, axis=2)  # height

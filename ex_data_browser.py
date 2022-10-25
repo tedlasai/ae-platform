@@ -111,7 +111,7 @@ class Browser:
         self.NEW_SCALES = [15,13,10,8,6,5,4,3.2,2.5,2,1.6,1.3,1,0.8,0.6,0.5,0.4,0.3,1/4,1/5,1/6,1/8,1/10,1/13,1/15,1/20,1/25,1/30,1/40,1/50,1/60,1/80,1/100,1/125,1/160,1/200,1/250,1/320,1/400,1/500]
 
         self.eV = []
-        self.auto_exposures = ["None", "Global", "Local", 'Local without grids', 'Local on moving objects','Max Gradient','HDR Histogram Method']
+        self.auto_exposures = ["None", "Global", "Local", 'Local without grids', 'Local on moving objects','Max Gradient srgb','Max Gradient raw','HDR Histogram Method']
         self.current_auto_exposure = "None"
 
         self.scene_index = 0
@@ -1036,7 +1036,7 @@ class Browser:
 
             self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
 
-        elif (self.current_auto_exposure == "Max Gradient"):
+        elif (self.current_auto_exposure == "Max Gradient raw"):
             self.clear_rects()
             exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"],
                                                 r_percent=self.exposureParams['r_percent'],
@@ -1049,7 +1049,23 @@ class Browser:
                                                 number_of_previous_frames=self.exposureParams[
                                                     'number_of_previous_frames'])
             # exposures = exposure_class.Exposure(params = self.exposureParams)
-            self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.gradient_exposure_pipeline()
+            self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.gradient_raw_exposure_pipeline()
+
+        elif (self.current_auto_exposure == "Max Gradient srgb"):
+            self.clear_rects()
+            input_ims = 'Image_Arrays_from_dng/Scene' + str(self.scene_index + 1) + '_show_dng_imgs.npy'
+            exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"],
+                                                r_percent=self.exposureParams['r_percent'],
+                                                g_percent=self.exposureParams['g_percent'],
+                                                low_threshold=0,
+                                                low_rate=0,
+                                                high_threshold=1.0,
+                                                high_rate=0,
+                                                stepsize=self.exposureParams['stepsize'],
+                                                number_of_previous_frames=self.exposureParams[
+                                                    'number_of_previous_frames'])
+            # exposures = exposure_class.Exposure(params = self.exposureParams)
+            self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.gradient_srgb_exposure_pipeline()
 
         elif (self.current_auto_exposure == "HDR Histogram Method"):
             self.clear_rects()
