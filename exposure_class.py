@@ -379,8 +379,8 @@ class Exposure:
         return flatten_weighted_ims, flatten_weighted_ims_before_outlier
 
     def get_hists(self, flatten_weighted_ims):
-        scene_hists_include_drooped_counts = self.hist_laxis(flatten_weighted_ims, self.num_hist_bins + 1, (
-            -0.01, 1.01))  # one extra bin is used to count the number of -0.01
+        scene_hists_include_drooped_counts = self.hist_laxis(flatten_weighted_ims, self.num_hist_bins + 2, (
+            -0.01, 1.01))  # 2 extra bin is used to count the number of -0.01 and 1
         num_dropped_pixels = scene_hists_include_drooped_counts[:, :, 0]
         scene_hists = scene_hists_include_drooped_counts[:, :, 1:]
         return scene_hists, num_dropped_pixels
@@ -505,7 +505,7 @@ class Exposure:
 
     def get_max_area_exposure_time(self,hdr_ims):
         black_level = 0.03  # 511.7 get from the black image captured
-        white_level = 0.95   # to be changed
+        white_level = 0.85   # to be changed
         new_scales_reciprocal = 1 / np.array(self.NEW_SCALES)
         self.minHDR = np.ones(len(self.NEW_SCALES)) * black_level
         self.maxHDR = np.ones(len(self.NEW_SCALES)) * white_level

@@ -46,7 +46,7 @@ class Browser:
                       'Scene16', 'Scene17', 'Scene18', 'Scene19', 'Scene20', 'Scene21']
         self.frame_num = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
                           100, 100, 100, 100, 100]  # number of frames per position
-        self.stack_size = [40, 15, 40, 15, 15, 15, 15, 15, 15, 40, 40, 15, 15, 15, 15, 40, 15,
+        self.stack_size = [40, 15, 40, 15, 15, 40, 15, 15, 15, 40, 40, 15, 15, 15, 15, 40, 15,
                            40, 40, 40, 40]  # number of shutter options per position
 
         self.SCALE_LABELS = {
@@ -636,11 +636,11 @@ class Browser:
         self.imagePrevlabel_2 = tk.Label(root, image=self.photo_2)
         self.imagePrevlabel_2.grid(row=2, column=3, columnspan=2, rowspan=15, sticky=tk.NE)
 
-    def hist_plot(self, count1=np.zeros(100), count2=np.zeros(100)):
+    def hist_plot(self, count1=np.zeros(101), count2=np.zeros(101)):
         font = {'family': 'monospace',
                 'weight': 'bold',
                 'size': 10}
-        bins = np.arange(1, self.num_bins + 1)
+        bins = np.arange(1, self.num_bins + 2)
         # self.fig = plt.figure(figsize=(4, 4))  # 4.6, 3.6
         if self.fig_2:
             plt.close(self.fig_2)
@@ -662,14 +662,14 @@ class Browser:
         self.imagePrevlabel_3 = tk.Label(root, image=self.photo_3)
         self.imagePrevlabel_3.grid(row=17, column=3, columnspan=2, rowspan=20, sticky=tk.NE)
 
-    def hist_plot_three(self, stack_size, curr_frame_mean_list, count1=np.zeros(100), count2=np.zeros(100),
-                        count3=np.zeros(100), ind=0, val=0, ind2=0, val2=0):
+    def hist_plot_three(self, stack_size, curr_frame_mean_list, count1=np.zeros(101), count2=np.zeros(101),
+                        count3=np.zeros(101), ind=0, val=0, ind2=0, val2=0):
         # stack_size = self.stack_size[self.scene_index]
         # curr_frame_mean_list = np.zeros(stack_size)
         font = {'family': 'monospace',
                 'weight': 'bold',
                 'size': 10}
-        bins = np.arange(1, self.num_bins + 1)
+        bins = np.arange(1, self.num_bins + 2)
         # self.fig = plt.figure(figsize=(4, 4))  # 4.6, 3.6
         if self.fig_2:
             plt.close(self.fig_2)
@@ -1279,9 +1279,9 @@ class Browser:
             count3 = self.hists[first_ind][ind2]
 
         else:
-            count1 = np.zeros(self.num_bins)
-            count2 = np.zeros(self.num_bins)
-            count3 = np.zeros(self.num_bins)
+            count1 = np.zeros(self.num_bins + 1)
+            count2 = np.zeros(self.num_bins + 1)
+            count3 = np.zeros(self.num_bins + 1)
             curr_frame_mean_list = np.zeros(stack_size)
             ind = 0
             val = 0
@@ -1358,12 +1358,12 @@ class Browser:
         else:
             mean = np.mean(current_rgb_img_)
             current_rgb_img_ = current_rgb_img_.flatten()
-            srgb_hist = self.hist_laxis(current_rgb_img_, self.num_bins,
+            srgb_hist = self.hist_laxis(current_rgb_img_, self.num_bins+1,
                                         (0, 1.01))
         return srgb_hist,mean
 
     def get_hists(self, flatten_weighted_ims):
-        scene_hists_include_drooped_counts = self.hist_laxis(flatten_weighted_ims, self.num_bins + 1, (
+        scene_hists_include_drooped_counts = self.hist_laxis(flatten_weighted_ims, self.num_bins + 2, (
             -0.01, 1.01))  # one extra bin is used to count the number of -0.01
         num_dropped_pixels = scene_hists_include_drooped_counts[0]
         scene_hists = scene_hists_include_drooped_counts[1:]
