@@ -469,42 +469,42 @@ class Exposure:
         else:
             return 2 - 2 * x
 
-    # def build_HDR_imgs(self):
-    #     SCALE_LABELS = [15, 8, 6, 4, 2, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 15, 1 / 30, 1 / 60, 1 / 125, 1 / 250, 1 / 500]
-    #     indexes_out_of_40 = [0, 3, 4, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39]
-    #     downsampled_ims = self.downsample_blending_rgb_channels()
-    #     downsampled_ims = downsampled_ims[:, indexes_out_of_40, :, :]
-    #     shutter_speed_reciprocal = 1 / np.array(SCALE_LABELS)
-    #     weight_matrix = np.where(downsampled_ims <= 0.5, 2 * downsampled_ims, 2 - 2 * downsampled_ims)
-    #     weighted_ims = np.multiply(weight_matrix, downsampled_ims)
-    #     weighted_ims = np.multiply(weighted_ims, shutter_speed_reciprocal[None, :, None, None])
-    #     weighted_ims_sum = np.sum(weighted_ims, axis=1)
-    #     weight_matrix_sum = np.sum(weight_matrix, axis=1)
-    #     weight_matrix_sum = weight_matrix_sum + 0.00001
-    #     weight_matrix_sum_reciprocal = 1 / weight_matrix_sum
-    #     hdr_ims = np.multiply(weight_matrix_sum_reciprocal, weighted_ims_sum)
-    #     return hdr_ims
-
     def build_HDR_imgs(self):
-        # SCALE_LABELS = [15, 8, 6, 4, 2, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 15, 1 / 30, 1 / 60, 1 / 125, 1 / 250, 1 / 500]
-        # indexes_out_of_40 = [0, 3, 4, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39]
-        downsampled_ims = self.downsample_blending_rgb_channels()
-        downsampled_ims = downsampled_ims[:,self.indexes_out_of_40,:,:]
+    #    SCALE_LABELS = [15, 8, 6, 4, 2, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 15, 1 / 30, 1 / 60, 1 / 125, 1 / 250, 1 / 500]
+    #     indexes_out_of_40 = [0, 3, 4, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39]
+        downsampled_ims_ = self.downsample_blending_rgb_channels()
+        downsampled_ims = downsampled_ims_[:, self.indexes_out_of_40, :, :]
         shutter_speed_reciprocal = 1 / np.array(self.SCALE_LABELS)
-        weight_matrix = np.where(downsampled_ims <= 0.5, 2*downsampled_ims, 2-2*downsampled_ims)
-        weight_matrix_sum = np.sum(weight_matrix, axis=1)
-        weight_matrix = weight_matrix/weight_matrix_sum[:, None, :, :]
-        weighted_ims = np.multiply(weight_matrix,downsampled_ims)
-        weighted_ims = np.multiply(weighted_ims,shutter_speed_reciprocal[None,:,None,None])
+        weight_matrix = np.where(downsampled_ims <= 0.5, 2 * downsampled_ims, 2 - 2 * downsampled_ims)
+        weighted_ims = np.multiply(weight_matrix, downsampled_ims)
+        weighted_ims = np.multiply(weighted_ims, shutter_speed_reciprocal[None, :, None, None])
         weighted_ims_sum = np.sum(weighted_ims, axis=1)
+        weight_matrix_sum = np.sum(weight_matrix, axis=1)
+        weight_matrix_sum = weight_matrix_sum + 0.00001
+        weight_matrix_sum_reciprocal = 1 / weight_matrix_sum
+        hdr_ims = np.multiply(weight_matrix_sum_reciprocal, weighted_ims_sum)
+        return hdr_ims, downsampled_ims_
 
-        weight_matrix_sum = weight_matrix_sum+0.00001
-        weight_matrix_sum_reciprocal = 1/weight_matrix_sum
-        hdr_ims = np.multiply(weight_matrix_sum_reciprocal,weighted_ims_sum)
-        return hdr_ims
+    # def build_HDR_imgs(self):
+    #     # SCALE_LABELS = [15, 8, 6, 4, 2, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 15, 1 / 30, 1 / 60, 1 / 125, 1 / 250, 1 / 500]
+    #     # indexes_out_of_40 = [0, 3, 4, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39]
+    #     downsampled_ims_ = self.downsample_blending_rgb_channels()
+    #     downsampled_ims = downsampled_ims_[:,self.indexes_out_of_40,:,:]
+    #     shutter_speed_reciprocal = 1 / np.array(self.SCALE_LABELS)
+    #     weight_matrix = np.where(downsampled_ims <= 0.5, 2*downsampled_ims, 2-2*downsampled_ims)
+    #     weight_matrix_sum = np.sum(weight_matrix, axis=1)
+    #     weight_matrix = weight_matrix/weight_matrix_sum[:, None, :, :]
+    #     weighted_ims = np.multiply(weight_matrix,downsampled_ims)
+    #     weighted_ims = np.multiply(weighted_ims,shutter_speed_reciprocal[None,:,None,None])
+    #     weighted_ims_sum = np.sum(weighted_ims, axis=1)
+    #
+    #     weight_matrix_sum = weight_matrix_sum+0.00001
+    #     weight_matrix_sum_reciprocal = 1/weight_matrix_sum
+    #     hdr_ims = np.multiply(weight_matrix_sum_reciprocal,weighted_ims_sum)
+    #     return hdr_ims, downsampled_ims_
 
     def get_max_area_exposure_time(self,hdr_ims):
-        black_level = 0  # 511.7
+        black_level = 0.03  # 511.7 get from the black image captured
         white_level = 0.95   # to be changed
         new_scales_reciprocal = 1 / np.array(self.NEW_SCALES)
         self.minHDR = np.ones(len(self.NEW_SCALES)) * black_level
@@ -517,8 +517,25 @@ class Exposure:
         x, y, z = hdr_ims.shape
         ims = hdr_ims.reshape(x, y * z)
         hdr_slot_sums = np.apply_along_axis(self.get_max_area_exposure_time_one_flatten_frame, 1, ims)
-        result = np.argmax(hdr_slot_sums,axis=1)
+        result = (np.argmax(hdr_slot_sums,axis=1)).reshape(len(hdr_slot_sums))
         return result
+
+    def hdr_max_area_pipeline(self):
+        hdr_ims, downsampled_ims = self.build_HDR_imgs()
+        opti_inds = self.get_max_area_exposure_time(hdr_ims)
+        print(type(opti_inds))
+        print(opti_inds)
+
+        grided_ims, grided_means = self.get_grided_ims(downsampled_ims)
+        weights, weights_before_ds_outlier = self.get_grids_weight_matrix(grided_means)
+        flatten_weighted_ims = self.get_flatten_weighted_imgs(weights, grided_ims)
+        flatten_weighted_ims_before_ds_outlier = self.get_flatten_weighted_imgs(weights_before_ds_outlier, grided_ims)
+        hists, dropped = self.get_hists(flatten_weighted_ims)
+        hists_before_ds_outlier, dropped_before_ds_outlier = self.get_hists(flatten_weighted_ims_before_ds_outlier)
+        weighted_means = self.get_means(dropped, flatten_weighted_ims)
+
+        opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
+        return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
 
 
     def get_max_area_exposure_time_one_flatten_frame(self,im):
@@ -565,10 +582,10 @@ class Exposure:
         hists, dropped = self.get_hists(flatten_weighted_ims)
         hists_before_ds_outlier, dropped_before_ds_outlier = self.get_hists(flatten_weighted_ims_before_ds_outlier)
         weighted_means = self.get_means(dropped, flatten_weighted_ims)
-        opti_inds_mean_approach = self.get_optimal_img_index(weighted_means)
-        print(opti_inds)
-        print("gradient------mean")
-        print(opti_inds_mean_approach)
+        # opti_inds_mean_approach = self.get_optimal_img_index(weighted_means)
+        # print(opti_inds)
+        # print("gradient------mean")
+        # print(opti_inds_mean_approach)
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
         return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
 
