@@ -109,7 +109,7 @@ def make_raw_im_show_data_one_im(c1,c2,c3,c4,shape0,shape1,im_path):
     params = {
         'input_stage': 'raw',
         #             # options: 'raw', 'normal', 'white_balance', 'demosaic', 'xyz', 'srgb', 'gamma', 'tone'
-        'output_stage': 'gamma',
+        'output_stage': 'tone',
         #             # options: 'normal', 'white_balance', 'demosaic', 'xyz', 'srgb', 'gamma', 'tone'
         'demosaic_type': 'EA'
     }
@@ -178,8 +178,8 @@ def save_im(raw_bayer,im_path):
 
 start_time = time.time()
 
-read_path = 'D:/dngs/Scene3/'
-scene_num = '3'
+read_path = 'D:/dngs/Scene17/'
+scene_num = '17'
 
 save_loc = os.path.join(os.path.dirname(__file__), 'Image_Arrays_exposure_separate')
 os.makedirs(save_loc, exist_ok=True)
@@ -204,9 +204,9 @@ else:
 #     # one_stack_isos_temp_list = []
 #     # one_stack_shutter_speeds_temp_list = []
     count = 0
-    count = 2*40
+    #count = 2*40
     i = 0
-    i = 2*15
+    #i = 2*15
     j = i+1
     k = 0
     image_path1 = images[i]

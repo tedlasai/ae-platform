@@ -5,7 +5,7 @@ import scipy
 
 class Exposure:
     def __init__(self, input_images, downsample_rate=1 / 64, r_percent=0, g_percent=1, col_num_grids=8, row_num_grids=8,
-                 target_intensity=0.19, high_threshold=1, low_threshold=0, high_rate=0.2, low_rate=0.2,
+                 target_intensity=0.18, high_threshold=1, low_threshold=0, high_rate=0.2, low_rate=0.2,
                  local_indices=[], num_hist_bins=100, local_with_downsampled_outliers=False, stepsize=3,
                  number_of_previous_frames=5, global_rate=0):
         self.global_rate = global_rate
@@ -602,7 +602,7 @@ class Exposure:
 
     def gradient_raw_exposure_pipeline(self):
         downsampled_ims = self.downsample_blending_rgb_channels()
-        downsampled_ims = downsampled_ims**(1/3.4)  # to fit our pipeline
+        downsampled_ims = downsampled_ims**(1/3.5)  # to fit our pipeline
 
         lam = 1000
         sig = 0.06
