@@ -154,6 +154,7 @@ class Browser:
         self.res_check = 0
         self.hdr_mode_check = 0
         self.make_crop_video_flag = 0
+        self.temp_coords_for_video_producing = []
 
         # Image Convas
         self.photo = ImageTk.PhotoImage(Image.fromarray(self.img))
@@ -2046,19 +2047,20 @@ class Browser:
             input_ims = 'Image_Arrays_exposure_new/Scene' + str(self.scene_index + 1) + '_ds_raw_imgs.npy'
         else:
             return
-        line_labels = [
+        line_labels = ["outlier boundary: 0 & 1; previous # of frames: 1; step limitation:0",
+                       "outlier boundary: 0 & 1; previous # of frames: 1; step limitation:40",
+                       "outlier boundary: 0 & 1; previous # of frames: 10; step limitation: 1",
+                       "outlier boundary: 0 & 1; previous # of frames: 5; step limitation: 3",
                        "cropped; outlier boundary: 0 & 1; previous # of frames: 1; step limitation:0",
                        "cropped; outlier boundary: 0 & 1; previous # of frames: 1; step limitation:40",
                        "cropped; outlier boundary: 0 & 1; previous # of frames: 10; step limitation: 1",
                        "cropped; outlier boundary: 0 & 1; previous # of frames: 5; step limitation: 3",
-                       "outlier boundary: 0 & 1; previous # of frames: 1; step limitation:0",
-                       "outlier boundary: 0 & 1; previous # of frames: 1; step limitation:40",
-                       "outlier boundary: 0 & 1; previous # of frames: 10; step limitation: 1",
-                       "outlier boundary: 0 & 1; previous # of frames: 5; step limitation: 3",
-                       # "outlier boundary: 0.05 & 0.9; previous # of frames: 5; step limitation: 3",
-                       # "outlier boundary: 0.05 & 0.9; previous # of frames: 10; step limitation: 1",
-                       # "outlier boundary: 0.05 & 0.9; previous # of frames: 1; step limitation: 40"
 
+                       "grid size: 8*8; outlier boundary: 0.05 & 0.9; previous # of frames: 1; step limitation: 0",
+                       "grid size: 8*8; outlier boundary: 0.05 & 0.9; previous # of frames: 1; step limitation: 40",
+
+                       "grid size: 8*8; outlier boundary: 0.05 & 0.9; previous # of frames: 10; step limitation: 1",
+                       "grid size: 8*8; outlier boundary: 0.05 & 0.9; previous # of frames: 5; step limitation: 3"
 
                        ]
         line_values = []
@@ -2076,8 +2078,48 @@ class Browser:
         g_percent = 0.5
         target_intensity = self.target_intensity.get()
         global_rate = self.local_interested_global_area_percentage.get()
+
+
+        #
+        #   0 1 0 1
+        self.make_moving_object_videos_helper(input_ims, target_intensity, r_percent, g_percent, downsample_rate,
+                                              col_num_grids, row_num_grids,
+                                              low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                              number_of_previous_frames, global_rate)
+        line_values.append(self.eV.copy())
+        #
+        stepsize_limit = 40
+        #   0 1 40 1
+        self.make_moving_object_videos_helper(input_ims, target_intensity, r_percent, g_percent, downsample_rate,
+                                              col_num_grids, row_num_grids,
+                                              low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                              number_of_previous_frames, global_rate)
+        line_values.append(self.eV.copy())
+
+        stepsize_limit = 1
+        number_of_previous_frames = 10
+        #  0 1 1 10
+        self.make_moving_object_videos_helper(input_ims, target_intensity, r_percent, g_percent, downsample_rate,
+                                              col_num_grids, row_num_grids,
+                                              low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                              number_of_previous_frames, global_rate)
+        line_values.append(self.eV.copy())
+
+        stepsize_limit = 3
+        number_of_previous_frames = 5
+        #
+        # 0 1 3 5
+        self.make_moving_object_videos_helper(input_ims, target_intensity, r_percent, g_percent, downsample_rate,
+                                              col_num_grids, row_num_grids,
+                                              low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                              number_of_previous_frames, global_rate)
+        line_values.append(self.eV.copy())
+
+
         self.make_crop_video_flag = 1
 
+        stepsize_limit = 0
+        number_of_previous_frames = 1
         #  0 1 0 1
         self.make_moving_object_videos_helper(input_ims, target_intensity, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
                                 low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
@@ -2139,46 +2181,63 @@ class Browser:
         # "cropped; outlier boundary: 0 & 1; previous # of frames: 1; step limitation:40",
         # "cropped; outlier boundary: 0 & 1; previous # of frames: 10; step limitation: 1",
 
-        self.make_crop_video_flag = 0
 
+
+
+
+        self.current_auto_exposure = "Global"
+        self.defAutoExposure.set("Global")
+        # cropped video on global selection
+        col_num_grids = 8
+        row_num_grids = 8
+        low_threshold = 0
+        low_rate = 0.2
+        high_threshold = 1
+        high_rate = 0.2
         stepsize_limit = 0
         number_of_previous_frames = 1
+        downsample_rate = 1 / 25
+        r_percent = 0.25
+        g_percent = 0.5
+        target_intensity = self.target_intensity.get()
 
-        #  0 1 0 1
-        self.make_moving_object_videos_helper(input_ims, target_intensity, r_percent, g_percent, downsample_rate,
-                                              col_num_grids, row_num_grids,
-                                              low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
-                                              number_of_previous_frames, global_rate)
+        low_threshold = 0.05
+        high_threshold = 0.9
+        # 8 8 0.05 0.9 100 1
+        self.make_global_videos_helper(input_ims,target_intensity, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
         line_values.append(self.eV.copy())
 
         stepsize_limit = 40
-        #  0 1 40 1
-        self.make_moving_object_videos_helper(input_ims, target_intensity, r_percent, g_percent, downsample_rate,
-                                              col_num_grids, row_num_grids,
-                                              low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
-                                              number_of_previous_frames, global_rate)
+
+        self.make_global_videos_helper(input_ims,target_intensity, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
         line_values.append(self.eV.copy())
 
         stepsize_limit = 1
         number_of_previous_frames = 10
-        #  0 1 1 10
-        self.make_moving_object_videos_helper(input_ims, target_intensity, r_percent, g_percent, downsample_rate,
-                                              col_num_grids, row_num_grids,
-                                              low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
-                                              number_of_previous_frames, global_rate)
+
+        self.make_global_videos_helper(input_ims,target_intensity, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
         line_values.append(self.eV.copy())
 
         stepsize_limit = 3
         number_of_previous_frames = 5
 
-        # 0 1 3 5
-        self.make_moving_object_videos_helper(input_ims, target_intensity, r_percent, g_percent, downsample_rate,
-                                              col_num_grids, row_num_grids,
-                                              low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
-                                              number_of_previous_frames, global_rate)
+        self.make_global_videos_helper(input_ims, target_intensity, r_percent, g_percent, downsample_rate,
+                                       col_num_grids, row_num_grids,
+                                       low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
+                                       number_of_previous_frames)
         line_values.append(self.eV.copy())
 
+        self.make_crop_video_flag = 0
+        self.temp_coords_for_video_producing = []
         self.making_a_serious_of_videos = 0
+
+
         #df = pd.DataFrame({"Settings": line_labels,'Shutter Speed': ylable})
         with open(str(self.scene[self.scene_index])+'_local_moving_'+self.local_interested_name.get()+'.csv', 'w') as file:
             file.write("Settings,frame_number,Shutter_Speed")
@@ -2189,6 +2248,9 @@ class Browser:
                     # print(j)
                     # print(shutterspeedind)
                     file.write(setting + "," + str(j) + "," + str(self.NEW_SCALES[shutterspeedind])+"\n")
+
+        self.current_auto_exposure = "Local on moving objects"
+        self.defAutoExposure.set("Local on moving objects")
 
 
     def make_moving_object_videos_helper(self, input_ims,target_intensity, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
@@ -2320,9 +2382,12 @@ class Browser:
             # img = deepcopy(self.img_all[self.temp_img_ind])
             img = deepcopy(self.img_raw[i][self.eV[i]])
             # cropped video only works when the number of interested area is one
-            if self.make_crop_video_flag == 1 and len(self.the_moving_area_list) > 0 and len(
-                    self.the_moving_area_list[0]) == 1:
-                coord = self.the_moving_area_list[i][0]
+            # if self.make_crop_video_flag == 1 and len(self.the_moving_area_list) > 0 and len(
+            #         self.the_moving_area_list[0]) == 1:
+            if self.make_crop_video_flag == 1:
+                if len(self.temp_coords_for_video_producing) < self.frame_num[self.scene_index]:
+                    self.temp_coords_for_video_producing.append((self.the_moving_area_list[i][0]).copy())
+                coord = self.temp_coords_for_video_producing[i]
                 # temp_img = np.ones(current_rgb_img_.shape) * (-0.01)
                 # h, w = current_rgb_img_.shape
                 # w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
@@ -2356,8 +2421,8 @@ class Browser:
         else:
             fold_name = self.scene[
                             self.scene_index] + "_dng_pipeline_local_" + self.local_interested_name.get() + '_steplimit' + str(stepsize_limit) + "_PreFrames" + str(number_of_previous_frames)+ "_target_mean_" + str(target_intensity)
-            if self.make_crop_video_flag == 1:
-                fold_name = fold_name + "_cropped"
+        if self.make_crop_video_flag == 1:
+            fold_name = fold_name + "_cropped"
 
         folderStore = os.path.join(os.path.dirname(__file__), 'Regular_Videos')
         os.makedirs(folderStore, exist_ok=True)

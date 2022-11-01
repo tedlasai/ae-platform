@@ -204,9 +204,9 @@ else:
 #     # one_stack_isos_temp_list = []
 #     # one_stack_shutter_speeds_temp_list = []
     count = 0
-    #count = 2*40
+    count = 37*40
     i = 0
-    #i = 2*15
+    i = 37*15
     j = i+1
     k = 0
     image_path1 = images[i]
