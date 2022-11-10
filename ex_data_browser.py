@@ -43,11 +43,11 @@ class Browser:
 
         self.scene = ['Scene1', 'Scene2', 'Scene3', 'Scene4', 'Scene5', 'Scene6',
                       'Scene7', 'Scene8', 'Scene9', 'Scene10', 'Scene11', 'Scene12', 'Scene13', 'Scene14', 'Scene15',
-                      'Scene16', 'Scene17', 'Scene18', 'Scene19', 'Scene20', 'Scene21']
+                      'Scene16', 'Scene17', 'Scene18', 'Scene19', 'Scene20', 'Scene21','Scene22']
         self.frame_num = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                          100, 100, 100, 100, 100]  # number of frames per position
-        self.stack_size = [40, 15, 40, 15, 15, 40, 15, 15, 15, 40, 40, 15, 15, 15, 15, 40, 15,
-                           40, 40, 40, 40]  # number of shutter options per position
+                          100, 100, 100, 100, 100,100]  # number of frames per position
+        self.stack_size = [40, 15, 40, 15, 15, 40, 15, 15, 15, 40, 40, 15, 15, 15, 15, 40, 40,
+                           40, 40, 40, 40, 40]  # number of shutter options per position
 
         self.SCALE_LABELS = {
             0: '15"',
@@ -1736,8 +1736,8 @@ class Browser:
         if self.current_auto_exposure != "Global":
             return
         line_labels = [# "grid size: 8*8; outlier boundary: 0 & 1; previous # of frames: 1; step limitation: 40",
-                       "grid size: 8*8; outlier boundary: 0.05 & 0.9; previous # of frames: 1; step limitation: 0",
-                       "grid size: 8*8; outlier boundary: 0.05 & 0.9; previous # of frames: 1; step limitation: 40",
+                       "grid size: 8*8; outlier boundary: 0.05 & 0.95; previous # of frames: 1; step limitation: 0",
+                       "grid size: 8*8; outlier boundary: 0.05 & 0.95; previous # of frames: 1; step limitation: 40",
                        # "grid size: 8*8; outlier boundary: 0.1 & 0.8; previous # of frames: 1; step limitation: 40",
                        # "grid size: 20*20; outlier boundary: 0.1 & 0.8; previous # of frames: 1; step limitation: 40",
                        # "grid size: 20*20; outlier boundary: 0.05 & 0.9; previous # of frames: 1; step limitation: 40",
@@ -1748,8 +1748,8 @@ class Browser:
                        # "grid size: 20*20; outlier boundary: 0.1 & 0.8; previous # of frames: 5; step limitation: 3",
                        # "grid size: 20*20; outlier boundary: 0.1 & 0.8; previous # of frames: 10; step limitation: 1",
                        # "grid size: 20*20; outlier boundary: 0.05 & 0.9; previous # of frames: 10; step limitation: 1",
-                       "grid size: 8*8; outlier boundary: 0.05 & 0.9; previous # of frames: 10; step limitation: 1",
-                       "grid size: 8*8; outlier boundary: 0.05 & 0.9; previous # of frames: 5; step limitation: 3",
+                       "grid size: 8*8; outlier boundary: 0.05 & 0.95; previous # of frames: 10; step limitation: 1",
+                       "grid size: 8*8; outlier boundary: 0.05 & 0.95; previous # of frames: 5; step limitation: 3",
                        # "grid size: 8*8; outlier boundary: 0.1 & 0.8; previous # of frames: 5; step limitation: 3",
                        # "grid size: 8*8; outlier boundary: 0.1 & 0.8; previous # of frames: 10; step limitation: 1",
                        # "grid size: 8*8; outlier boundary: 0 & 1; previous # of frames: 10; step limitation: 1",
@@ -1782,7 +1782,7 @@ class Browser:
         # line_values.append(self.eV.copy())
 
         low_threshold = 0.05
-        high_threshold = 0.9
+        high_threshold = 0.95
         # 8 8 0.05 0.9 100 1
         self.make_global_videos_helper(input_ims,target_intensity, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
                                        low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
@@ -2004,7 +2004,7 @@ class Browser:
         line_values.append(self.eV.copy())
 
         low_threshold = 0.05
-        high_threshold = 0.9
+        high_threshold = 0.95
         # 0.05 0.9 3 5
         self.make_local_videos_helper(input_ims,target_intensity, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
                                 low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
@@ -2056,11 +2056,11 @@ class Browser:
                        "cropped; outlier boundary: 0 & 1; previous # of frames: 10; step limitation: 1",
                        "cropped; outlier boundary: 0 & 1; previous # of frames: 5; step limitation: 3",
 
-                       "grid size: 8*8; outlier boundary: 0.05 & 0.9; previous # of frames: 1; step limitation: 0",
-                       "grid size: 8*8; outlier boundary: 0.05 & 0.9; previous # of frames: 1; step limitation: 40",
+                       "grid size: 8*8; outlier boundary: 0.05 & 0.95; previous # of frames: 1; step limitation: 0",
+                       "grid size: 8*8; outlier boundary: 0.05 & 0.95; previous # of frames: 1; step limitation: 40",
 
-                       "grid size: 8*8; outlier boundary: 0.05 & 0.9; previous # of frames: 10; step limitation: 1",
-                       "grid size: 8*8; outlier boundary: 0.05 & 0.9; previous # of frames: 5; step limitation: 3"
+                       "grid size: 8*8; outlier boundary: 0.05 & 0.95; previous # of frames: 10; step limitation: 1",
+                       "grid size: 8*8; outlier boundary: 0.05 & 0.95; previous # of frames: 5; step limitation: 3"
 
                        ]
         line_values = []
@@ -2202,7 +2202,7 @@ class Browser:
         target_intensity = self.target_intensity.get()
 
         low_threshold = 0.05
-        high_threshold = 0.9
+        high_threshold = 0.95
         # 8 8 0.05 0.9 100 1
         self.make_global_videos_helper(input_ims,target_intensity, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,
                                        low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
