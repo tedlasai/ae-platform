@@ -667,18 +667,23 @@ class Exposure:
         for j in range(1,100):
             current_frame = downsampled_ims1[j]
             current_map = np.reshape(salient_map[j-1][ind],(112*168))
-            current_map = current_map/np.sum(current_map)
+            #current_map = current_map/np.sum(current_map)
             #current_weighted_ims = np.multiply(current_frame,current_map[None,:])
             current_weighted_ims = []
 
             for i in range(40):
                 this_map = np.array(current_map)
 
+                this_map[this_map < 0.3] = 0
+                number_nonzeros = np.count_nonzero(this_map)
+                total_number = len(this_map)
+                number_zeros = total_number - number_nonzeros
+                salient_weight = number_nonzeros*2/(total_number + number_nonzeros*1)
                 map_sum = np.sum(this_map)
-                this_map = this_map*0.8/map_sum
-                number_zeros = len(this_map) - np.count_nonzero(this_map)
+                this_map = this_map*salient_weight/map_sum
+
                 if number_zeros > 0:
-                    this_map = np.where(this_map == 0, 0.2/number_zeros,this_map)
+                    this_map = np.where(this_map == 0, (1-salient_weight)/number_zeros,this_map)
                 # temporary outlier handler, to be changed
                 this_map = np.where(current_frame[i] > 0.95, 0, this_map)
 
