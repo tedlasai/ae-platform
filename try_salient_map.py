@@ -16,7 +16,7 @@ import pyimgsaliency as psal
 # filename = 'pyimgsaliency/bird.jpg'
 # filename = 'images/out.jpg'
 # image = cv2.imread("images/out.jpg")
-images = np.load("image_Arrays_from_dng/Scene22_show_dng_imgs.npy")
+images = np.load("image_Arrays_from_dng/Scene3_show_dng_imgs.npy")
 images = images[:,:,::4,::4]
 
 #images_raw = np.load("image_Arrays_exposure_new/Scene22_ds_raw_imgs.npy")
@@ -92,7 +92,7 @@ for i in range(x):
 		print("--")
 		image_out[i, j] = np.resize(map_,(112,168))
 		#image_out[i, j] = np.resize(one_img(gray[i, j]),(112,168))
-np.save('Scene22_salient_maps_rbd', np.asarray(image_out))
+np.save('Scene3_salient_maps_rbd', np.asarray(image_out))
 #np.save('Scene22_salient_maps', np.asarray(image_out))
 # initialize OpenCV's static saliency spectral residual detector and
 # compute the saliency map

@@ -111,7 +111,7 @@ class Browser:
         self.NEW_SCALES = [15,13,10,8,6,5,4,3.2,2.5,2,1.6,1.3,1,0.8,0.6,0.5,0.4,0.3,1/4,1/5,1/6,1/8,1/10,1/13,1/15,1/20,1/25,1/30,1/40,1/50,1/60,1/80,1/100,1/125,1/160,1/200,1/250,1/320,1/400,1/500]
 
         self.eV = []
-        self.auto_exposures = ["None", "Global","Global_fixed", "Local", 'Local without grids', 'Local on moving objects','Max Gradient srgb','Max Gradient raw','HDR Histogram Method']
+        self.auto_exposures = ["None", "Global","Saliency_map", "Local", 'Local without grids', 'Local on moving objects','Max Gradient srgb','Max Gradient raw','HDR Histogram Method']
         self.current_auto_exposure = "None"
 
         self.scene_index = 0
@@ -1055,7 +1055,7 @@ class Browser:
 
             self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline()
 
-        elif (self.current_auto_exposure == "Global_fixed"):
+        elif (self.current_auto_exposure == "Saliency_map"):
             self.clear_rects()
             name = self.scene[self.scene_index]+"_salient_maps_rbd.npy"
             print(name)
@@ -2087,6 +2087,7 @@ class Browser:
                                               low_threshold, low_rate, high_threshold, high_rate, stepsize_limit,
                                               number_of_previous_frames, global_rate)
         line_values.append(self.eV.copy())
+
         #
         stepsize_limit = 40
         #   0 1 40 1
@@ -2264,6 +2265,7 @@ class Browser:
         # exposures = exposure_class.Exposure(params = self.exposureParams)
 
         self.eV,  self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids_moving_object()
+        print(self.eV)
         self.export_video_2(col_num_grids, row_num_grids, low_threshold, low_rate, high_threshold, high_rate,
                             stepsize_limit, number_of_previous_frames, target_intensity)
 

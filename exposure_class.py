@@ -681,11 +681,11 @@ class Exposure:
                 salient_weight = number_nonzeros*2/(total_number + number_nonzeros*1)
                 map_sum = np.sum(this_map)
                 this_map = this_map*salient_weight/map_sum
-
+                this_map = np.where(current_frame[i] > 0.95, 0, this_map)
                 if number_zeros > 0:
                     this_map = np.where(this_map == 0, (1-salient_weight)/number_zeros,this_map)
                 # temporary outlier handler, to be changed
-                this_map = np.where(current_frame[i] > 0.95, 0, this_map)
+
 
                 current_weighted_ims.append(np.multiply(current_frame[i], this_map))
             current_weighted_ims = np.array(current_weighted_ims)
