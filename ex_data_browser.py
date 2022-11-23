@@ -1059,7 +1059,7 @@ class Browser:
             self.clear_rects()
             name = self.scene[self.scene_index]+"_salient_maps_rbd.npy"
             print(name)
-            salient_map = np.load(name)
+            salient_map = np.load("saliency_maps/"+name)
             # print(self.scene[self.scene_index] + "_salient_maps_rbd.npy")
             # salient_map = np.load("Scene22_salient_maps_rbd.npy")
             exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"],

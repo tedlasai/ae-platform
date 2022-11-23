@@ -663,6 +663,9 @@ class Exposure:
             if abs(the_means_frame1[i] - self.target_intensity) < min_residual:
                 ind = i
                 min_residual = abs(the_means_frame1[i] - self.target_intensity)
+        # ind = 16
+        # opti_inds.append(ind)
+        # opti_inds.append(ind)
         opti_inds.append(ind)
         for j in range(1,100):
             current_frame = downsampled_ims1[j]
@@ -698,8 +701,9 @@ class Exposure:
                     ind = i
                     min_residual = abs(the_means[i] - self.target_intensity)
             opti_inds.append(ind)
-
+        print(opti_inds)
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
+        print(opti_inds_adjusted_previous_n_frames)
 
         # grided_ims, grided_means = self.get_grided_ims(downsampled_ims)
         # weights, weights_before_ds_outlier = self.get_grids_weight_matrix(grided_means)
