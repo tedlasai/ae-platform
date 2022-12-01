@@ -663,7 +663,7 @@ class Exposure:
             if abs(the_means_frame1[i] - self.target_intensity) < min_residual:
                 ind = i
                 min_residual = abs(the_means_frame1[i] - self.target_intensity)
-        # ind = 16
+        #ind = 15
         # opti_inds.append(ind)
         # opti_inds.append(ind)
         opti_inds.append(ind)
@@ -675,31 +675,65 @@ class Exposure:
             current_weighted_ims = []
 
             for i in range(40):
-                this_map = np.array(current_map)
+                # this_map = np.array(current_map)
 
-                this_map[this_map < 0.3] = 0
-                number_nonzeros = np.count_nonzero(this_map)
-                total_number = len(this_map)
+                # this_map[this_map < 0.3] = 0
+                # #number_nonzeros = np.count_nonzero(this_map)
+                # total_number = len(this_map)
+                # #number_zeros = total_number - number_nonzeros
+                # #map_sum = np.sum(this_map)
+                # #salient region should be weighted in proportion to size
+                # #non-salient region should take up rest of the weight
+                #
+                # this_map = np.where(current_frame[i]**(1.0/2.2) > 0.85, 0, this_map)
+                # number_nonzeros = np.count_nonzero(this_map)
+                # number_zeros = total_number - number_nonzeros
+                # salient_weight = number_nonzeros*2/(total_number + number_nonzeros*1)
+                #
+                # this_map = this_map * salient_weight / map_sum
+                # if number_zeros > 0:
+                #     this_map = np.where(this_map == 0, (1-salient_weight)/number_zeros,this_map)
+                # # temporary outlier handler, to be changed
+
+                #
+                if j > 5:
+                    pre_maps = np.empty((112,168,5))
+                    for k in range(5):
+                        pre_maps[:,:,k] = salient_map[j-k-1][opti_inds[j-k-1]]
+
+                    saliency = np.mean(pre_maps,axis=2).reshape(112*168)
+                else:
+                    saliency = np.array(current_map)
+                mask = np.where(saliency < 0.1, 0, saliency)
+                combined = np.where(current_frame[i]**(1.0/2.2) > 0.95, 0, mask)
+                total_number = len(saliency)
+                number_nonzeros = np.count_nonzero(combined)
                 number_zeros = total_number - number_nonzeros
-                salient_weight = number_nonzeros*2/(total_number + number_nonzeros*1)
-                map_sum = np.sum(this_map)
-                this_map = this_map*salient_weight/map_sum
-                this_map = np.where(current_frame[i] > 0.95, 0, this_map)
-                if number_zeros > 0:
-                    this_map = np.where(this_map == 0, (1-salient_weight)/number_zeros,this_map)
-                # temporary outlier handler, to be changed
+                salient_weight = 14/(total_number + number_nonzeros*13)
+                None_salient_weight = 1/(total_number + number_nonzeros*13)
+                new_map = np.where(combined == 0, None_salient_weight,salient_weight)
+                map_sum = np.sum(new_map)
+                #print(map_sum)
+                new_map = new_map/map_sum
 
 
-                current_weighted_ims.append(np.multiply(current_frame[i], this_map))
+                current_weighted_ims.append(np.multiply(current_frame[i], new_map))
             current_weighted_ims = np.array(current_weighted_ims)
 
+
+            if j == 36:
+                a = current_weighted_ims[20].reshape((112,168))
+                c=0
             the_means = np.sum(current_weighted_ims, axis=1)
+
+
             ind = 0
             min_residual = abs(the_means[0] - self.target_intensity)
             for i in range(1, 40):
                 if abs(the_means[i] - self.target_intensity) < min_residual:
                     ind = i
                     min_residual = abs(the_means[i] - self.target_intensity)
+
             opti_inds.append(ind)
         print(opti_inds)
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)

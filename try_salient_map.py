@@ -16,13 +16,14 @@ import pyimgsaliency as psal
 # filename = 'pyimgsaliency/bird.jpg'
 # filename = 'images/out.jpg'
 # image = cv2.imread("images/out.jpg")
-images = np.load("image_Arrays_from_dng/Scene16_show_dng_imgs.npy")
+images = np.load("image_Arrays_from_dng/Scene19_show_dng_imgs.npy")
 images = images[:,:,::4,::4]
 
 #images_raw = np.load("image_Arrays_exposure_new/Scene22_ds_raw_imgs.npy")
 #images = images[15][14]
 
-gray = np.mean(images, axis = 4)
+#gray = np.mean(images, axis = 4)
+gray = images
 #images[images>245] = 0
 #image = images ** (0.45)
 #
@@ -67,9 +68,11 @@ gray = np.mean(images, axis = 4)
 
 
 def one_img_rbd(image):
-	rbd = psal.get_saliency_rbd(image).astype('uint8')
+	#rbd = psal.get_saliency_rbd(image).astype('uint8')
+	mbd = psal.get_saliency_mbd(image).astype('uint8')
 	#cv2.imwrite("rbdshow"+'.jpg',rbd)
-	saliencyMap = rbd / 255
+	#saliencyMap = rbd / 255
+	saliencyMap = mbd / 255
 	#saliencyMap = cv2.resize(saliencyMap,(168,112))
 	#cv2.imwrite("rbdshow__" + '.jpg', (saliencyMap*255).astype(np.uint8))
 	return saliencyMap
@@ -83,7 +86,7 @@ def one_img(image):
 
 
 
-x,y,z,l = gray.shape
+x,y,z,l,c = gray.shape
 #image_out = np.zeros(gray.shape)
 
 
@@ -93,13 +96,21 @@ x,y,z,l = gray.shape
 image_out = np.zeros((100,40,112,168))
 for i in range(x):
 	for j in range(y):
-		map_ = one_img_rbd(gray[i, j])
+		# if (i*40 + j == 119) or (i*40 + j == 158) or (i*40 + j == 159):
+		# 	image_out[i,j] = np.array(image_out[i,j-1])
+		# 	continue
+		try:
+			map_ = one_img_rbd(gray[i, j])
+			image_out[i, j] = cv2.resize(map_, (168, 112))
+		except:
+			image_out[i, j] = np.array(image_out[i, j - 1])
+
 		print(i*40+j)
-		image_out[i, j] = cv2.resize(map_,(168,112))
+
 		if i==0 and j == 10:
-			cv2.imwrite("rbdshow_+_" + '.jpg', (image_out[i, j] * 255).astype(np.uint8))
+			cv2.imwrite("rbdshowmbd19_+_" + '.jpg', (image_out[i, j] * 255).astype(np.uint8))
 		#image_out[i, j] = np.resize(one_img(gray[i, j]),(112,168))
-np.save('Scene3_salient_maps_rbd', np.asarray(image_out))
+np.save('saliency_maps/Scene19_salient_maps_mbd', np.asarray(image_out))
 #np.save('Scene22_salient_maps', np.asarray(image_out))
 # initialize OpenCV's static saliency spectral residual detector and
 # compute the saliency map

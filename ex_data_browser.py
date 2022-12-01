@@ -1057,9 +1057,14 @@ class Browser:
 
         elif (self.current_auto_exposure == "Saliency_map"):
             self.clear_rects()
-            name = self.scene[self.scene_index]+"_salient_maps_rbd.npy"
-            print(name)
-            salient_map = np.load("saliency_maps/"+name)
+            name1 = self.scene[self.scene_index]+"_salient_maps_rbd.npy"
+            name2 = self.scene[self.scene_index] + "_salient_maps_mbd.npy"
+
+            #print(name)
+            #salient_map_rbd = np.load("saliency_maps/"+name1)
+            salient_map_mbd = np.load("saliency_maps/"+name2)
+            #salient_map = (salient_map_mbd +salient_map_rbd)/2
+            salient_map = salient_map_mbd
             # print(self.scene[self.scene_index] + "_salient_maps_rbd.npy")
             # salient_map = np.load("Scene22_salient_maps_rbd.npy")
             exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"],
@@ -1662,6 +1667,7 @@ class Browser:
 
     def updateSlider(self, scale_value):
         if ((self.current_auto_exposure != "None") and (len(self.eV) > 0)):
+            print(len(self.eV))
             self.verSlider.set(self.eV[self.horSlider.get()])
             temp_img_ind = int(self.horSlider.get()) * self.stack_size[self.scene_index] + self.eV[self.horSlider.get()]
         else:
