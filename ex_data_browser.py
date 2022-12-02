@@ -356,12 +356,15 @@ class Browser:
         self.c1 = tk.Checkbutton(root, text='Show Raw Image', variable=self.useRawIms_, offvalue=0, onvalue=1,
                                  command=self.switch_raw)
         self.c1.grid(row=24, column=5)
+        #self.c1.select()
 
     def show_SRGB_hist_check_box(self):
         self.show_srgb_hist_check_ = tk.IntVar()
         self.c1 = tk.Checkbutton(root, text='Show SRGB Hist', variable=self.show_srgb_hist_check_, offvalue=0, onvalue=1,
                                  command=self.switch_SRGB_Hist)
         self.c1.grid(row=27, column=5)
+        #self.c1.select()
+
     def hdr_abdullah_button(self):
         # HDR Button - Abdullah
         self.HdrAbdullahButton = tk.Button(root, text='HDR-Abdullah', fg='#ffffff', bg='#999999',

@@ -6,8 +6,8 @@ import scipy
 class Exposure:
     def __init__(self, input_images, downsample_rate=1 / 64, r_percent=0, g_percent=1, col_num_grids=8, row_num_grids=8,
                  target_intensity=0.18, high_threshold=1, low_threshold=0, high_rate=0.2, low_rate=0.2,
-                 local_indices=[], num_hist_bins=100, local_with_downsampled_outliers=False, stepsize=3,
-                 number_of_previous_frames=5, global_rate=0):
+                 local_indices=[], num_hist_bins=100, local_with_downsampled_outliers=False, stepsize=40,
+                 number_of_previous_frames=1, global_rate=0):
         self.global_rate = global_rate
         self.absolute_bit = 2 ** 8  # max bit number of the raw image
         self.input_images = input_images
@@ -646,7 +646,7 @@ class Exposure:
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
         return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
 
-    def pipeline_with_salient_map(self,salient_map):
+    def pipeline_with_binary_salient_map_without_curve(self,salient_map):
         downsampled_ims = self.downsample_blending_rgb_channels()
         #salient_map = np.load("Scene22_salient_maps_rbd.npy")
         salient_map += 0.1
@@ -696,17 +696,21 @@ class Exposure:
                 # # temporary outlier handler, to be changed
 
                 #
-                if j > 5:
-                    pre_maps = np.empty((112,168,5))
-                    for k in range(5):
+                if j > 1:
+                    num_pre = min(j-1,7)
+                    pre_maps = np.empty((112,168,num_pre))
+                    for k in range(num_pre):
                         pre_maps[:,:,k] = salient_map[j-k-1][opti_inds[j-k-1]]
 
                     saliency = np.mean(pre_maps,axis=2).reshape(112*168)
                 else:
                     saliency = np.array(current_map)
-                mask = np.where(saliency < 0.1, 0, saliency)
-                combined = np.where(current_frame[i]**(1.0/2.2) > 0.95, 0, mask)
+                mask = np.where(saliency < 0.15, 0, saliency)
+                #this works ok
+                #combined = np.where(current_frame[i]**(1.0/2.2) > 0.95, 0, mask)
                 total_number = len(saliency)
+                combined = np.where(current_frame[i] ** (1.0 / 2.2) > 0.5, (1-current_frame[i])/total_number, mask)
+
                 number_nonzeros = np.count_nonzero(combined)
                 number_zeros = total_number - number_nonzeros
                 salient_weight = 14/(total_number + number_nonzeros*13)
@@ -715,14 +719,156 @@ class Exposure:
                 map_sum = np.sum(new_map)
                 #print(map_sum)
                 new_map = new_map/map_sum
+                if j == 50 and i == 25:
+                    #a = current_weighted_ims[25].reshape((112, 168))
+                    c = 0
 
 
                 current_weighted_ims.append(np.multiply(current_frame[i], new_map))
             current_weighted_ims = np.array(current_weighted_ims)
 
 
-            if j == 36:
-                a = current_weighted_ims[20].reshape((112,168))
+            if j == 50:
+                a = current_weighted_ims[25].reshape((112,168))
+                c=0
+            the_means = np.sum(current_weighted_ims, axis=1)
+
+
+            ind = 0
+            min_residual = abs(the_means[0] - self.target_intensity)
+            for i in range(1, 40):
+                if abs(the_means[i] - self.target_intensity) < min_residual:
+                    ind = i
+                    min_residual = abs(the_means[i] - self.target_intensity)
+            start_index = max(0, j - self.number_of_previous_frames)
+            # print("start_ind: "+str(start_index))
+            average_of_previous_n_frames = np.mean(opti_inds[start_index:j])
+            diff = average_of_previous_n_frames - ind
+            if diff < -self.stepsize:
+                ind = round(average_of_previous_n_frames + self.stepsize)
+            if diff > self.stepsize:
+                ind = round(average_of_previous_n_frames - self.stepsize)
+            opti_inds.append(ind)
+        print(opti_inds)
+        #opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
+        opti_inds_adjusted_previous_n_frames = opti_inds
+
+        # grided_ims, grided_means = self.get_grided_ims(downsampled_ims)
+        # weights, weights_before_ds_outlier = self.get_grids_weight_matrix(grided_means)
+        # flatten_weighted_ims = self.get_flatten_weighted_imgs(weights, grided_ims)
+        # flatten_weighted_ims_before_ds_outlier = self.get_flatten_weighted_imgs(weights_before_ds_outlier, grided_ims)
+        # hists, dropped = self.get_hists(flatten_weighted_ims)
+        # hists_before_ds_outlier, dropped_before_ds_outlier = self.get_hists(flatten_weighted_ims_before_ds_outlier)
+        # weighted_means = self.get_means(dropped, flatten_weighted_ims)
+        weighted_means = np.zeros((100,40))
+        hists = np.zeros((100,40,101))
+        hists_before_ds_outlier = np.zeros((100,40,101))
+
+        return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
+
+
+    def pipeline_with_salient_map(self,salient_map):
+        downsampled_ims = self.downsample_blending_rgb_channels()
+        #salient_map = np.load("Scene22_salient_maps_rbd.npy")
+        salient_map += 0.1
+        # temporary outlier handler, to be changed
+        # salient_map = np.where(downsampled_ims >= 0.95, 0.2, salient_map)
+        num_frames, stack_size, height, width = downsampled_ims.shape
+        downsampled_ims1 = np.reshape(downsampled_ims,(num_frames,stack_size,height*width))
+        #the_means = np.zeros((num_frames,stack_size))
+        opti_inds=[]
+        the_means_frame1 = np.mean(downsampled_ims1[0], axis=1)
+        ind = 0
+        min_residual = abs(the_means_frame1[0] - self.target_intensity)
+        for i in range(1,40):
+            if abs(the_means_frame1[i] - self.target_intensity) < min_residual:
+                ind = i
+                min_residual = abs(the_means_frame1[i] - self.target_intensity)
+
+        #ind = 15
+        # opti_inds.append(ind)
+        # opti_inds.append(ind)
+        opti_inds.append(ind)
+        for j in range(1,100):
+            current_frame = downsampled_ims1[j]
+            current_map = np.reshape(salient_map[j-1][ind],(112*168))
+            #current_map = current_map/np.sum(current_map)
+            #current_weighted_ims = np.multiply(current_frame,current_map[None,:])
+            current_weighted_ims = []
+
+            for i in range(40):
+                # this_map = np.array(current_map)
+
+                # this_map[this_map < 0.3] = 0
+                # #number_nonzeros = np.count_nonzero(this_map)
+                # total_number = len(this_map)
+                # #number_zeros = total_number - number_nonzeros
+                # #map_sum = np.sum(this_map)
+                # #salient region should be weighted in proportion to size
+                # #non-salient region should take up rest of the weight
+                #
+                # this_map = np.where(current_frame[i]**(1.0/2.2) > 0.85, 0, this_map)
+                # number_nonzeros = np.count_nonzero(this_map)
+                # number_zeros = total_number - number_nonzeros
+                # salient_weight = number_nonzeros*2/(total_number + number_nonzeros*1)
+                #
+                # this_map = this_map * salient_weight / map_sum
+                # if number_zeros > 0:
+                #     this_map = np.where(this_map == 0, (1-salient_weight)/number_zeros,this_map)
+                # # temporary outlier handler, to be changed
+
+                #
+                if j > 1:
+                    num_pre = min(j-1,7)
+                    pre_maps = np.empty((112,168,num_pre))
+                    for k in range(num_pre):
+                        pre_maps[:,:,k] = salient_map[j-k-1][opti_inds[j-k-1]]
+
+                    saliency = np.mean(pre_maps,axis=2).reshape(112*168)
+                else:
+                    saliency = np.array(current_map)
+                mask = np.where(saliency < 0.15, 0, saliency)
+                #combined = np.where(current_frame[i]**(1.0/2.2) > 0.95, 0, mask)
+                total_number = len(saliency)
+                combined = np.where(current_frame[i] ** (1.0 / 2.2) > 0.95, 0, mask)
+
+                combined = np.where(np.logical_and(current_frame[i] ** (1.0 / 2.2) <= 0.95,current_frame[i] ** (1.0 / 2.2) > 0.5), np.power((1 - current_frame[i] ** (1.0 / 2.2)),2.2)*saliency, combined)
+                combined = np.where(np.logical_and(current_frame[i] ** (1.0 / 2.2) <= 0.5,current_frame[i] ** (1.0 / 2.2) > 0) ,
+                                   np.power((current_frame[i] ** (1.0 / 2.2)),2.2) * saliency, combined)
+                #combined = np.where(current_frame[i] ** (1.0 / 2.2) <= 0.1 ,
+                #                    0, combined)
+                number_nonzeros = np.count_nonzero(combined)
+
+                number_zeros = total_number - number_nonzeros
+                # salient_weight = 14/(total_number + number_nonzeros*13)
+                # None_salient_weight = 1/(total_number + number_nonzeros*13)
+                # new_map = np.where(combined == 0, None_salient_weight,salient_weight)
+                # map_sum = np.sum(new_map)
+                # #print(map_sum)
+                # new_map = new_map/map_sum
+
+                salient_weight = 5 * number_nonzeros / (total_number + number_nonzeros * 4)
+                None_salient_weight = 1 - salient_weight
+                sum_salient = np.sum(combined)
+
+                new_map = combined * salient_weight / sum_salient
+                if number_zeros > 0:
+                    new_map[new_map == 0] = None_salient_weight/number_zeros
+
+                new_map = new_map/np.sum(new_map)
+
+
+                if j == 1 and i == 17:
+                    #a = current_weighted_ims[25].reshape((112, 168))
+                    c = 0
+
+
+                current_weighted_ims.append(np.multiply(current_frame[i], new_map))
+            current_weighted_ims = np.array(current_weighted_ims)
+
+
+            if j == 50:
+                a = current_weighted_ims[25].reshape((112,168))
                 c=0
             the_means = np.sum(current_weighted_ims, axis=1)
 
@@ -734,10 +880,19 @@ class Exposure:
                     ind = i
                     min_residual = abs(the_means[i] - self.target_intensity)
 
+            start_index = max(0, j - self.number_of_previous_frames)
+            # print("start_ind: "+str(start_index))
+            average_of_previous_n_frames = np.mean(opti_inds[start_index:j])
+            diff = average_of_previous_n_frames - ind
+            if diff < -self.stepsize:
+                ind = round(average_of_previous_n_frames + self.stepsize)
+            if diff > self.stepsize:
+                ind = round(average_of_previous_n_frames - self.stepsize)
             opti_inds.append(ind)
         print(opti_inds)
-        opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
-        print(opti_inds_adjusted_previous_n_frames)
+        #opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
+        #print(opti_inds_adjusted_previous_n_frames)
+        opti_inds_adjusted_previous_n_frames = opti_inds
 
         # grided_ims, grided_means = self.get_grided_ims(downsampled_ims)
         # weights, weights_before_ds_outlier = self.get_grids_weight_matrix(grided_means)
