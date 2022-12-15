@@ -114,7 +114,7 @@ class Browser:
         self.auto_exposures = ["None", "Global","Saliency_map", "Local", 'Local without grids', 'Local on moving objects','Max Gradient srgb','Max Gradient raw','HDR Histogram Method']
         self.current_auto_exposure = "None"
 
-        self.scene_index = 0
+        self.scene_index = 16
         self.mertensVideo = []
         self.bit_depth = 8
         self.downscale_ratio = 0.12
@@ -146,7 +146,7 @@ class Browser:
         #     self.img_all = self.img_raw
         self.img = deepcopy(self.img_all[0])
         self.useMertens = False
-        self.useRawIms = 0
+        self.useRawIms = 1
         self.play = True
         self.video_speed = 50
         self.video_fps = 30
@@ -353,6 +353,7 @@ class Browser:
 
     def show_Raw_Ims_check_box(self):
         self.useRawIms_ = tk.IntVar()
+        self.useRawIms_.set(1)
         self.c1 = tk.Checkbutton(root, text='Show Raw Image', variable=self.useRawIms_, offvalue=0, onvalue=1,
                                  command=self.switch_raw)
         self.c1.grid(row=24, column=5)

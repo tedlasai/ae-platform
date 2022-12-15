@@ -16,7 +16,7 @@ import pyimgsaliency as psal
 # filename = 'pyimgsaliency/bird.jpg'
 # filename = 'images/out.jpg'
 # image = cv2.imread("images/out.jpg")
-images = np.load("image_Arrays_from_dng/Scene11_show_dng_imgs.npy")
+images = np.load("image_Arrays_from_dng/Scene17_show_dng_imgs.npy")
 images = images[:,:,::4,::4]
 
 #images_raw = np.load("image_Arrays_exposure_new/Scene22_ds_raw_imgs.npy")
@@ -92,33 +92,14 @@ x,y,z,l,c = gray.shape
 
 #map_try = one_img_rbd(gray[1,18])
 
-i = 20
-j = 14
+i = 99
+j = 16
 m = one_img_rbd(gray[i, j])
-l = cv2.resize(m, (168, 112))
+saliency = cv2.resize(m, (168, 112))
+l =  np.where(saliency < 0.1, 0, 1)
 cv2.imwrite("saliencymap" '.jpg', (l * 255).astype(np.uint8))
 print("WRote")
-image_out = np.zeros((100,40,112,168))
-for i in range(x):
-	for j in range(y):
-		# if (i*40 + j == 119) or (i*40 + j == 158) or (i*40 + j == 159):
-		# 	image_out[i,j] = np.array(image_out[i,j-1])
-		# 	continue
-		try:
-			map_ = one_img_rbd(gray[i, j])
-			image_out[i, j] = cv2.resize(map_, (168, 112))
-		except:
-			image_out[i, j] = np.array(image_out[i, j - 1])
 
-		print(i*40+j)
-
-		if i==0 and j == 25:
-			cv2.imwrite("rbdshowmbd19_+_" + '.jpg', (image_out[i, j] * 255).astype(np.uint8))
-		#image_out[i, j] = np.resize(one_img(gray[i, j]),(112,168))
-np.save('saliency_maps/Scene11_salient_maps_mbd', np.asarray(image_out))
-#np.save('Scene22_salient_maps', np.asarray(image_out))
-# initialize OpenCV's static saliency spectral residual detector and
-# compute the saliency map
 # saliency1 = cv2.saliency.StaticSaliencySpectralResidual_create()
 #
 # (success, saliencyMap) = saliency1.computeSaliency(image)

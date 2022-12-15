@@ -485,24 +485,6 @@ class Exposure:
         hdr_ims = np.multiply(weight_matrix_sum_reciprocal, weighted_ims_sum)
         return hdr_ims, downsampled_ims_
 
-    # def build_HDR_imgs(self):
-    #     # SCALE_LABELS = [15, 8, 6, 4, 2, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 15, 1 / 30, 1 / 60, 1 / 125, 1 / 250, 1 / 500]
-    #     # indexes_out_of_40 = [0, 3, 4, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39]
-    #     downsampled_ims_ = self.downsample_blending_rgb_channels()
-    #     downsampled_ims = downsampled_ims_[:,self.indexes_out_of_40,:,:]
-    #     shutter_speed_reciprocal = 1 / np.array(self.SCALE_LABELS)
-    #     weight_matrix = np.where(downsampled_ims <= 0.5, 2*downsampled_ims, 2-2*downsampled_ims)
-    #     weight_matrix_sum = np.sum(weight_matrix, axis=1)
-    #     weight_matrix = weight_matrix/weight_matrix_sum[:, None, :, :]
-    #     weighted_ims = np.multiply(weight_matrix,downsampled_ims)
-    #     weighted_ims = np.multiply(weighted_ims,shutter_speed_reciprocal[None,:,None,None])
-    #     weighted_ims_sum = np.sum(weighted_ims, axis=1)
-    #
-    #     weight_matrix_sum = weight_matrix_sum+0.00001
-    #     weight_matrix_sum_reciprocal = 1/weight_matrix_sum
-    #     hdr_ims = np.multiply(weight_matrix_sum_reciprocal,weighted_ims_sum)
-    #     return hdr_ims, downsampled_ims_
-
     def get_max_area_exposure_time(self,hdr_ims):
         black_level = 0.03  # 511.7 get from the black image captured
         white_level = 0.85   # to be changed
@@ -649,7 +631,7 @@ class Exposure:
     def pipeline_with_salient_map(self,salient_map):
         downsampled_ims = self.downsample_blending_rgb_channels()
         #salient_map = np.load("Scene22_salient_maps_rbd.npy")
-        salient_map += 0.1
+        #salient_map += 0.1
         # temporary outlier handler, to be changed
         # salient_map = np.where(downsampled_ims >= 0.95, 0.2, salient_map)
         num_frames, stack_size, height, width = downsampled_ims.shape
@@ -663,7 +645,7 @@ class Exposure:
             if abs(the_means_frame1[i] - self.target_intensity) < min_residual:
                 ind = i
                 min_residual = abs(the_means_frame1[i] - self.target_intensity)
-        #ind = 15
+        ind = 25
         # opti_inds.append(ind)
         # opti_inds.append(ind)
         opti_inds.append(ind)
@@ -674,6 +656,7 @@ class Exposure:
             #current_weighted_ims = np.multiply(current_frame,current_map[None,:])
             current_weighted_ims = []
 
+            #current_map = current_map-0.10392
             for i in range(40):
                 # this_map = np.array(current_map)
 
@@ -704,27 +687,35 @@ class Exposure:
                     saliency = np.mean(pre_maps,axis=2).reshape(112*168)
                 else:
                     saliency = np.array(current_map)
-                mask = np.where(saliency < 0.1, 0, saliency)
+
+                mask = np.where(saliency < 0.1, 0, 1)
                 combined = np.where(current_frame[i]**(1.0/2.2) > 0.95, 0, mask)
                 total_number = len(saliency)
                 number_nonzeros = np.count_nonzero(combined)
                 number_zeros = total_number - number_nonzeros
-                salient_weight = 14/(total_number + number_nonzeros*13)
-                None_salient_weight = 1/(total_number + number_nonzeros*13)
+                salient_weight = 20/(total_number + number_nonzeros*19)
+                None_salient_weight = 1/(total_number + number_nonzeros*19)
                 new_map = np.where(combined == 0, None_salient_weight,salient_weight)
+                new_map = np.where(current_frame[i]**(1.0/2.2) > 0.95, 0, new_map)
                 map_sum = np.sum(new_map)
                 #print(map_sum)
-                new_map = new_map/map_sum
+                new_map = new_map*18816/map_sum
+                #new_map = new_map / map_sum
 
 
                 current_weighted_ims.append(np.multiply(current_frame[i], new_map))
+                istop = 1
+                jstop = 20
+                if (i == istop and j == jstop):
+                    pass
             current_weighted_ims = np.array(current_weighted_ims)
 
 
             if j == 36:
                 a = current_weighted_ims[20].reshape((112,168))
                 c=0
-            the_means = np.sum(current_weighted_ims, axis=1)
+            the_means = np.mean(current_weighted_ims, axis=1)
+            #the_means = np.sum(current_weighted_ims, axis=1)
 
 
             ind = 0
