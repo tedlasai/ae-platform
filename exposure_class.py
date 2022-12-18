@@ -162,8 +162,7 @@ class Exposure:
         return grid_means
 
     def get_grided_intesntiy_from_grided_ims(self, grided_imgs):
-        temp_ims = np.mean(grided_imgs, axis=4)
-        temp_ims = np.mean(temp_ims, axis=3)
+        temp_ims = np.mean(grided_imgs, axis=(3,4))
         grid_means = np.reshape(temp_ims,
                                 (self.num_frame, self.num_ims_per_frame, self.row_num_grids, self.col_num_grids))
         return grid_means
@@ -707,9 +706,9 @@ class Exposure:
                     saliency = np.array(current_map)
                 mask = np.where(saliency < 0.15, 0, saliency)
                 #this works ok
-                #combined = np.where(current_frame[i]**(1.0/2.2) > 0.95, 0, mask)
+                combined = np.where(current_frame[i]**(1.0/2.2) > 0.95, 0, mask)
                 total_number = len(saliency)
-                combined = np.where(current_frame[i] ** (1.0 / 2.2) > 0.5, (1-current_frame[i])/total_number, mask)
+                #combined = np.where(current_frame[i] ** (1.0 / 2.2) > 0.5, (1-current_frame[i])/total_number, mask)
 
                 number_nonzeros = np.count_nonzero(combined)
                 number_zeros = total_number - number_nonzeros
@@ -828,15 +827,15 @@ class Exposure:
                 else:
                     saliency = np.array(current_map)
                 mask = np.where(saliency < 0.15, 0, saliency)
-                #combined = np.where(current_frame[i]**(1.0/2.2) > 0.95, 0, mask)
+                combined = np.where(current_frame[i]**(1.0/2.2) > 0.95, np.power((1 - current_frame[i] ** (1.0 / 2.2)),2.2)*saliency, mask)
                 total_number = len(saliency)
-                combined = np.where(current_frame[i] ** (1.0 / 2.2) > 0.95, 0, mask)
+                #combined = np.where(current_frame[i] ** (1.0 / 2.2) > 0.95, 0, mask)
 
-                combined = np.where(np.logical_and(current_frame[i] ** (1.0 / 2.2) <= 0.95,current_frame[i] ** (1.0 / 2.2) > 0.5), np.power((1 - current_frame[i] ** (1.0 / 2.2)),2.2)*saliency, combined)
-                combined = np.where(np.logical_and(current_frame[i] ** (1.0 / 2.2) <= 0.5,current_frame[i] ** (1.0 / 2.2) > 0) ,
-                                   np.power((current_frame[i] ** (1.0 / 2.2)),2.2) * saliency, combined)
-                #combined = np.where(current_frame[i] ** (1.0 / 2.2) <= 0.1 ,
-                #                    0, combined)
+                #combined = np.where(np.logical_and(current_frame[i] ** (1.0 / 2.2) <= 0.95,current_frame[i] ** (1.0 / 2.2) > 0.5), np.power((1 - current_frame[i] ** (1.0 / 2.2)),2.2)*saliency, combined)
+                #combined = np.where(np.logical_and(current_frame[i] ** (1.0 / 2.2) <= 0.5,current_frame[i] ** (1.0 / 2.2) > 0) ,
+                                   #np.power((current_frame[i] ** (1.0 / 2.2)),2.2) * saliency, combined)
+                combined = np.where(current_frame[i] ** (1.0 / 2.2) <= 0.05,
+                                    np.power((current_frame[i] ** (1.0 / 2.2)),2.2) * saliency, combined)
                 number_nonzeros = np.count_nonzero(combined)
 
                 number_zeros = total_number - number_nonzeros
@@ -847,7 +846,7 @@ class Exposure:
                 # #print(map_sum)
                 # new_map = new_map/map_sum
 
-                salient_weight = 5 * number_nonzeros / (total_number + number_nonzeros * 4)
+                salient_weight = 10 * number_nonzeros / (total_number + number_nonzeros * 9)
                 None_salient_weight = 1 - salient_weight
                 sum_salient = np.sum(combined)
 
