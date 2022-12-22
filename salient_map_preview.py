@@ -1,3 +1,5 @@
+import time
+
 import cv2
 import argparse
 import numpy as np
@@ -62,6 +64,7 @@ import pyimgsaliency as psal
 
 def one_img_rbd(image):
 	#rbd = psal.get_saliency_rbd(image).astype('uint8')
+	print(image.shape)
 	mbd = psal.get_saliency_mbd(image).astype('uint8')
 	#cv2.imwrite("rbdshow"+'.jpg',rbd)
 	#saliencyMap = rbd / 255
@@ -83,7 +86,7 @@ def one_img(image):
 
 
 #map_try = one_img_rbd(gray[1,18])
-images = np.load("image_Arrays_from_dng/Scene3_show_dng_imgs.npy")
+images = np.load("image_Arrays_from_dng/Scene19_show_dng_imgs.npy")
 images = images[:,:,::4,::4]
 
 #images_raw = np.load("image_Arrays_exposure_new/Scene22_ds_raw_imgs.npy")
@@ -95,7 +98,9 @@ gray = images
 x,y,z,l,c = gray.shape
 i = 0
 j = 16
+print(time.time())
 m = one_img_rbd(gray[i, j])
+print(time.time())
 saliency = cv2.resize(m, (168, 112))
 l =  np.where(saliency < 0.1, 0, 1)
 cv2.imwrite("saliencymap" '.jpg', (saliency * 255).astype(np.uint8))

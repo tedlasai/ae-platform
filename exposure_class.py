@@ -449,8 +449,20 @@ class Exposure:
         print(self.number_of_previous_frames)
         print("step size")
         print(self.stepsize)
-        if length > 1:
-            i = 1
+        # if length > 1:
+        #     i = 1
+        #     while i < length:
+        #         start_index = max(0, i - self.number_of_previous_frames)
+        #         # print("start_ind: "+str(start_index))
+        #         average_of_previous_n_frames = np.mean(opti_inds_new[start_index:i])
+        #         diff = average_of_previous_n_frames - opti_inds_new[i]
+        #         if diff < -self.stepsize:
+        #             opti_inds_new[i] = round(average_of_previous_n_frames + self.stepsize)
+        #         if diff > self.stepsize:
+        #             opti_inds_new[i] = round(average_of_previous_n_frames - self.stepsize)
+        #         i += 1
+        if length > 2:
+            i = 2
             while i < length:
                 start_index = max(0, i - self.number_of_previous_frames)
                 # print("start_ind: "+str(start_index))
@@ -460,6 +472,10 @@ class Exposure:
                     opti_inds_new[i] = round(average_of_previous_n_frames + self.stepsize)
                 if diff > self.stepsize:
                     opti_inds_new[i] = round(average_of_previous_n_frames - self.stepsize)
+
+                #override change
+                if abs(opti_inds_new[i]-opti_inds_new[i-1]) < 3 and( opti_inds_new[i-1]-opti_inds_new[i-2]) < 2:
+                    opti_inds_new[i] = opti_inds_new[i-1]
                 i += 1
         return opti_inds_new
 
@@ -679,12 +695,13 @@ class Exposure:
                 # # temporary outlier handler, to be changed
 
                 #
-                if j > 5:
-                    pre_maps = np.empty((112,168,5))
-                    for k in range(5):
+                if j > 1:
+                    pre_maps = np.empty((112,168,1))
+                    for k in range(1):
                         pre_maps[:,:,k] = salient_map[j-k-1][opti_inds[j-k-1]]
 
-                    saliency = np.mean(pre_maps,axis=2).reshape(112*168)
+                    #saliency = np.mean(pre_maps,axis=1).reshape(112*168)
+                    saliency = salient_map[j-1][opti_inds[j-1]].reshape(112*168)
                 else:
                     saliency = np.array(current_map)
 

@@ -178,8 +178,8 @@ def save_im(raw_bayer,im_path):
 
 start_time = time.time()
 
-read_path = 'F:/4ddata\dngs\Scene29/'
-scene_num = '29'
+read_path = 'D:/dngs/Scene15/'
+scene_num = '15'
 
 save_loc = os.path.join(os.path.dirname(__file__), 'Image_Arrays_exposure_separate')
 os.makedirs(save_loc, exist_ok=True)

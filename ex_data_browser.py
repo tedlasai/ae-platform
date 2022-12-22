@@ -702,6 +702,7 @@ class Browser:
         vals1 = count1 / sum_c1
         vals2 = count2 / sum_c2
         vals3 = count3 / sum_c3
+        print("IND", ind, ind2)
         if ind == ind2:
             color1 = 'blue'
             axes[1].bar(bins, vals2, align='center', color=color1)
@@ -1980,7 +1981,7 @@ class Browser:
         low_rate = 0.2
         high_threshold = 1
         high_rate = 0.2
-        stepsize_limit = 40
+        stepsize_limit = 5
         number_of_previous_frames = 1
         downsample_rate = 1 / 25
         r_percent = 0.25
