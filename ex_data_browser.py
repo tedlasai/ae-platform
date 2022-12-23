@@ -114,7 +114,7 @@ class Browser:
         self.auto_exposures = ["None", "Global","Saliency_map", "Local", 'Local without grids', 'Local on moving objects','Max Gradient srgb','Max Gradient raw','HDR Histogram Method']
         self.current_auto_exposure = "None"
 
-        self.scene_index = 16
+        self.scene_index = 18
         self.mertensVideo = []
         self.bit_depth = 8
         self.downscale_ratio = 0.12
@@ -394,14 +394,14 @@ class Browser:
 
     def number_of_previous_frames_text_box(self):
         self.number_of_previous_frames = tk.IntVar()
-        self.number_of_previous_frames.set(1)
+        self.number_of_previous_frames.set(3)
         tk.Label(root, text="# of previous frames").grid(row=31, column=5)
         self.e1 = tk.Entry(root, textvariable=self.number_of_previous_frames)
         self.e1.grid(row=32, column=5, sticky=tk.E)
 
     def stepsize_limit_text_box(self):
         self.stepsize_limit = tk.IntVar()
-        self.stepsize_limit.set(40)
+        self.stepsize_limit.set(5)
         tk.Label(root, text="step size limitation").grid(row=33, column=5)
         self.e1 = tk.Entry(root, textvariable=self.stepsize_limit)
         self.e1.grid(row=34, column=5, sticky=tk.E)
@@ -702,7 +702,6 @@ class Browser:
         vals1 = count1 / sum_c1
         vals2 = count2 / sum_c2
         vals3 = count3 / sum_c3
-        print("IND", ind, ind2)
         if ind == ind2:
             color1 = 'blue'
             axes[1].bar(bins, vals2, align='center', color=color1)
@@ -853,7 +852,6 @@ class Browser:
             # capture the image and save it on the save path
             os.makedirs(folderStore, exist_ok=True)
 
-            print(self.video_fps)
             video = cv2.VideoWriter(connected_image, cv2.VideoWriter_fourcc('M', 'J', "P", 'G'), self.video_fps,
                                     (sv.width, sv.height))
 
@@ -934,7 +932,6 @@ class Browser:
 
     def check_fps(self):
 
-        print("text is ", self.save_video_fps.get())
 
         if self.validate_video_speed(self.save_video_fps.get()) is True:
 
@@ -1396,9 +1393,6 @@ class Browser:
 
     def show_srgb_hist(self):  # assuming the channel order is RGB
         current_rgb_img = deepcopy(self.img_raw[self.horSlider.get()][self.verSlider.get()])
-        print("hor_ind & ver_ind")
-        print(self.horSlider.get())
-        print(self.verSlider.get())
         current_rgb_img = current_rgb_img / (2**8 - 1)
         current_rgb_img[:, :, 0] = current_rgb_img[:, :, 0] * 0.2126
         current_rgb_img[:, :, 1] = current_rgb_img[:, :, 1] * 0.7152
@@ -1427,7 +1421,6 @@ class Browser:
             temp_img = temp_img.flatten()
             srgb_hist,dropped = self.get_hists(temp_img)
             mean = self.get_means(dropped, temp_img)
-            print("xx")
         else:
             mean = np.mean(current_rgb_img_)
             current_rgb_img_ = current_rgb_img_.flatten()
@@ -1714,7 +1707,6 @@ class Browser:
 
         # global verSlider, horSlider, photo, photo_2, imagePrevlabel, imagePrevlabel_2, img_all, img, img_mean_list, scene_index, fig, useMertens, mertensVideo
         #
-        print(self.useRawIms)
         if self.useMertens:
             # img = self.mertensVideo[self.horSlider.get()]
             img = self.img_mertens[self.horSlider.get()]

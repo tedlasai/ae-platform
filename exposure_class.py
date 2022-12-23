@@ -446,9 +446,11 @@ class Exposure:
         length = len(opti_inds)
         opti_inds_new = np.array(opti_inds)
         print("# previes frames")
+        print(opti_inds)
         print(self.number_of_previous_frames)
         print("step size")
         print(self.stepsize)
+        current_index = opti_inds_new[0]
         # if length > 1:
         #     i = 1
         #     while i < length:
@@ -461,22 +463,44 @@ class Exposure:
         #         if diff > self.stepsize:
         #             opti_inds_new[i] = round(average_of_previous_n_frames - self.stepsize)
         #         i += 1
+
         if length > 2:
-            i = 2
+            i = 1
             while i < length:
                 start_index = max(0, i - self.number_of_previous_frames)
+                ideal_index = opti_inds_new[i]
                 # print("start_ind: "+str(start_index))
                 average_of_previous_n_frames = np.mean(opti_inds_new[start_index:i])
                 diff = average_of_previous_n_frames - opti_inds_new[i]
-                if diff < -self.stepsize:
-                    opti_inds_new[i] = round(average_of_previous_n_frames + self.stepsize)
-                if diff > self.stepsize:
-                    opti_inds_new[i] = round(average_of_previous_n_frames - self.stepsize)
+                velocity = abs(opti_inds_new[i-1]-opti_inds_new[i-2])
+                if(abs(ideal_index-current_index) > 2 or velocity > 0):
+                    print("DIFF BEGORE", diff)
+                    if (velocity < abs(diff)):
+                        if (diff < 0):
+                            diff = -velocity - 1
+                        else:
+                            diff = velocity + 1
+                    if (abs(ideal_index-opti_inds_new[i-1]) > 3):
+                        print(f"IN HERE Velocity {velocity}, diff {diff}. index {i}")
+                    else:
+                        print(f"VELOCITY{velocity}, index, {i}, {opti_inds_new[i-1]}, {opti_inds_new[i-2]}, diff {diff}")
+                    if diff < -self.stepsize:
+                        opti_inds_new[i] = round(current_index + self.stepsize)
+                    elif diff > self.stepsize:
+                        opti_inds_new[i] = round(current_index - self.stepsize)
+                    else :
+                        opti_inds_new[i] = round(current_index - diff)
+                    current_index = opti_inds_new[i]
+                else:
+                    opti_inds_new[i] = opti_inds_new[i-1]
+
+
 
                 #override change
-                if abs(opti_inds_new[i]-opti_inds_new[i-1]) < 3 and( opti_inds_new[i-1]-opti_inds_new[i-2]) < 2:
-                    opti_inds_new[i] = opti_inds_new[i-1]
+                #if abs(opti_inds_new[i]-opti_inds_new[i-1]) < 3 and( opti_inds_new[i-1]-opti_inds_new[i-2]) < 2:
+                #    opti_inds_new[i] = opti_inds_new[i-1]
                 i += 1
+        print("OPT NEW", opti_inds_new)
         return opti_inds_new
 
     def HDR_weight_function(self, x):
