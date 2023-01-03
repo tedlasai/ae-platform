@@ -178,8 +178,8 @@ def save_im(raw_bayer,im_path):
 
 start_time = time.time()
 
-read_path = 'D:/dngs/Scene15/'
-scene_num = '15'
+read_path = 'D:/dngs/Scene18/'
+scene_num = '18'
 
 save_loc = os.path.join(os.path.dirname(__file__), 'Image_Arrays_exposure_separate')
 os.makedirs(save_loc, exist_ok=True)
@@ -204,9 +204,9 @@ else:
 #     # one_stack_isos_temp_list = []
 #     # one_stack_shutter_speeds_temp_list = []
     count = 0
-    # count = 62*40
+   # count = 62*40
     i = 0
-    # i = 62*15
+    #i = 62*15
     j = i+1
     k = 0
     image_path1 = images[i]
@@ -217,7 +217,8 @@ else:
     show_one_stack_ims_temp_list.append(output_im_show1)
     print(count)
     count += 1
-    while count < TOTAL_IMS - 38*40 + 1:
+    #- 38*40
+    while count < TOTAL_IMS  + 1:
         image_path2 = images[j]
         im2, mean2, output_im_algorithm2, output_im_show2 = get_normed_im(image_path2)
         if NEW_SCALES[k] == SCALE_LABELS[i % NUMBER_OF_IMAGES_PER_STACK]:

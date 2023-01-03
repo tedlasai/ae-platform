@@ -86,7 +86,7 @@ def one_img(image):
 
 
 #map_try = one_img_rbd(gray[1,18])
-images = np.load("image_Arrays_from_dng/Scene19_show_dng_imgs.npy")
+images = np.load("image_Arrays_from_dng/Scene15_show_dng_imgs.npy")
 images = images[:,:,::4,::4]
 
 #images_raw = np.load("image_Arrays_exposure_new/Scene22_ds_raw_imgs.npy")
@@ -97,7 +97,7 @@ gray = images
 
 x,y,z,l,c = gray.shape
 i = 0
-j = 16
+j = 20
 print(time.time())
 m = one_img_rbd(gray[i, j])
 print(time.time())
