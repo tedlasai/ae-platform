@@ -16,6 +16,7 @@ import regular
 import high_res_auto_ex_video
 import exposure_class
 from test_pipline import local_interested_grids_generater
+import pickle as pkl
 
 
 mp.rcParams.update({'axes.titlesize': 14, 'font.size': 11, 'font.family': 'arial'})
@@ -841,7 +842,7 @@ class Browser:
 
                 img = deepcopy(self.img_all[self.temp_img_ind])
                 reg_vid.append(img)
-                print("IMG", img.shape)
+                print("IMG", img.shape, i, "STACK SIZE", self.stack_size[self.scene_index])
 
             m1 = Image.fromarray(reg_vid[0])
             m2 = reg_vid_plot[0]
@@ -1036,7 +1037,7 @@ class Browser:
         self.check_num_grids()
         self.exposureParams = {"downsample_rate": 1 / 25, 'r_percent': 0.25, 'g_percent': 0.5,
                                'col_num_grids': self.col_num_grids, 'row_num_grids': self.row_num_grids,
-                               'low_threshold': self.low_threshold.get(), 'start_index': float(self.start_index.get()),
+                               'low_threshold': self.low_threshold.get(), 'start_index': int(self.start_index.get()),
                                'high_threshold': self.high_threshold.get(), 'high_rate': float(self.high_rate.get()),
                                'stepsize': self.stepsize_limit.get(),
                                "number_of_previous_frames": self.number_of_previous_frames.get(),
@@ -1188,6 +1189,10 @@ class Browser:
             self.clear_rects_local()
             list_local = self.list_local_without_grids_moving_objects()
 
+            filenamePickle = os.path.join("local_pickle", f"Scene{self.scene_index}.pkl")
+            with open(filenamePickle, 'wb') as f:
+                pkl.dump(list_local, f)
+
             exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"],
                                                 target_intensity=self.exposureParams['target_intensity'],
                                                 r_percent=self.exposureParams['r_percent'],
@@ -1262,6 +1267,8 @@ class Browser:
                 #     list__.append([y_start/h,x_strat/w,y_end/h,x_end/w])
                 # list_.append(list__)
         self.the_moving_area_list = list_.copy()
+
+        print("MOVING AREA LIST", self.the_moving_area_list)
         return list_
 
     def playVideo(self):
@@ -1353,6 +1360,7 @@ class Browser:
             ind = send_ind
             val = curr_frame_mean_list[send_ind]
             ind2 = self.eV[self.horSlider.get()]
+            print("IND2", ind2)
             val2 = curr_frame_mean_list[ind2]
             count3 = self.hists[first_ind][ind2]
 

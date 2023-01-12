@@ -46,7 +46,8 @@ def method_1_assume_line_across_origin(image_path1,image_path2,ind1,ind2,targetx
     im1,mean1 = get_normed_im(image_path1)
     im2,mean2 = get_normed_im(image_path2)
     x1 = SCALE_LABELS[ind1]
-    x2 = SCALE_LABELS[ind2]
+    x2 = SCALE_LABELS[
+        2]
     return one_pixel_function(im1,im2,x1,x2,targetx)
 
 def method_2(image_path1,image_path2,ind1,ind2,targetx):
@@ -178,8 +179,8 @@ def save_im(raw_bayer,im_path):
 
 start_time = time.time()
 
-read_path = 'D:/dngs/Scene18/'
-scene_num = '18'
+read_path = 'D:/dngs/Scene12/'
+scene_num = '12'
 
 save_loc = os.path.join(os.path.dirname(__file__), 'Image_Arrays_exposure_separate')
 os.makedirs(save_loc, exist_ok=True)
@@ -204,9 +205,9 @@ else:
 #     # one_stack_isos_temp_list = []
 #     # one_stack_shutter_speeds_temp_list = []
     count = 0
-   # count = 62*40
+    count = 33*40
     i = 0
-    #i = 62*15
+    i = 33*15
     j = i+1
     k = 0
     image_path1 = images[i]

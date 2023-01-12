@@ -393,11 +393,20 @@ class Exposure:
         return (mean * img_size - (-0.01) * num_drooped_pixels_per_im) / (img_size - num_drooped_pixels_per_im)
 
     def get_means(self, num_dropped_pixels, flatten_weighted_ims):
-        weighted_all_means = np.mean(flatten_weighted_ims, axis=2).reshape((self.num_frame, self.num_ims_per_frame, 1))
-        num_dropped_pixels = num_dropped_pixels.reshape((self.num_frame, self.num_ims_per_frame, 1))
-        concat_weighted_means_num_dropped_pixels = np.concatenate((weighted_all_means, num_dropped_pixels), axis=2)
-        weighted_means_flatten = np.apply_along_axis(self.correct_one_mean, 2, concat_weighted_means_num_dropped_pixels)
-        weighted_means = weighted_means_flatten.reshape(self.num_frame, self.num_ims_per_frame)
+        #weighted_all_means = np.mean(flatten_weighted_ims, axis=2).reshape((self.num_frame, self.num_ims_per_frame, 1))
+        #num_dropped_pixels = num_dropped_pixels.reshape((self.num_frame, self.num_ims_per_frame, 1))
+        #concat_weighted_means_num_dropped_pixels = np.concatenate((weighted_all_means, num_dropped_pixels), axis=2)
+        #weighted_means_flatten = np.apply_along_axis(self.correct_one_mean, 2, concat_weighted_means_num_dropped_pixels)
+        #weighted_means = weighted_means_flatten.reshape(self.num_frame, self.num_ims_per_frame)
+
+        num_good_pixels = flatten_weighted_ims != -0.01
+        num_good_pixels = np.sum(num_good_pixels, axis=2)
+        num_good_pixels[num_good_pixels == 0] = -1 # this allows for division when values are 0(usally really bright stuff)
+        good_pixel_ims = flatten_weighted_ims
+        good_pixel_ims[good_pixel_ims < 0] = 0 #make all the negative 0.01s to 0
+
+        weighted_means = np.sum(good_pixel_ims, axis=2) / num_good_pixels #take average of good pixels
+
         return weighted_means
 
     def get_optimal_img_index(self, weighted_means):
@@ -418,7 +427,7 @@ class Exposure:
 
     def adjusted_opti_inds_v2_by_average_of_previous_n_frames(self, opti_inds):
         length = len(opti_inds)
-        opti_inds_new = np.array(opti_inds)
+        opti_inds_new = np.array(opti_inds).astype(int)
         print("# previes frames")
         print(opti_inds)
         print(self.number_of_previous_frames)
@@ -438,7 +447,7 @@ class Exposure:
         #             opti_inds_new[i] = round(average_of_previous_n_frames - self.stepsize)
         #         i += 1
         import collections
-        lastVisitedIndices = collections.deque([opti_inds[0],opti_inds[0],opti_inds[0]], maxlen=3)
+        lastVisitedIndices = collections.deque([opti_inds[0],opti_inds[0],opti_inds[0],opti_inds[0]], maxlen=4)
 
         if length > 2:
             i = 1
@@ -447,11 +456,12 @@ class Exposure:
                 sum = 0
                 for index in lastVisitedIndices:
                     sum+=index
-                average_of_previous_n_frames = sum/3
+                average_of_previous_n_frames = sum/4
                 #print(f"i{i}, average_of_previous_n_frames {average_of_previous_n_frames},  opti_inds_new[i] { opti_inds_new[i]}")
-                if(abs(average_of_previous_n_frames - opti_inds_new[i] )> 1):
+                if(abs(average_of_previous_n_frames - opti_inds_new[i] )> 0.5):
                    # print(lastVisitedIndices)
-                    nextVisitIndex = (lastVisitedIndices[-2] + 2*lastVisitedIndices[-1] +3*opti_inds_new[i])/6
+                    nextVisitIndex = round((lastVisitedIndices[-3]+lastVisitedIndices[-2] + 2*lastVisitedIndices[-1] +3*opti_inds_new[i])/6)
+                    print("TYPE NEXT VISIT", type(nextVisitIndex), nextVisitIndex)
                     #current_index = opti_inds_new[i]
                     opti_inds_new[i] = nextVisitIndex
                 else:
@@ -466,6 +476,7 @@ class Exposure:
                 #    opti_inds_new[i] = opti_inds_new[i-1]
                 i += 1
         print("OPT NEW", opti_inds_new)
+        #opti_inds_new = 15*np.ones(length).astype(int)
         return opti_inds_new
 
     def HDR_weight_function(self, x):
@@ -672,6 +683,7 @@ class Exposure:
             downsampled_ims1 = np.reshape(downsampled_ims,(num_frames,stack_size,height*width))
             opti_inds=[]
             ind = self.start_index
+            print("INd", type(ind))
             opti_inds.append(ind)
             for j in range(1,100):
                 current_frame = downsampled_ims1[j]

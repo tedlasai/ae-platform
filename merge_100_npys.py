@@ -17,7 +17,7 @@ for npy_frame in npy_frames:
   print(c)
   c += 1
 
-filename = 'Scene15_ds_raw_imgs'
+filename = 'Scene18_ds_raw_imgs'
 save_loc = path[:-9]+'new'
 os.makedirs(save_loc, exist_ok=True)
 np.save(save_loc+'/'+filename, np.asarray(algoImages))
@@ -36,7 +36,7 @@ for npy_frame in npy_frames:
   print(c)
   c += 1
 
-filename = 'Scene15_show_dng_imgs'
+filename = 'Scene18_show_dng_imgs'
 save_loc_ = path[:-10]
 os.makedirs(save_loc_, exist_ok=True)
 np.save(save_loc_+'/'+filename, np.asarray(showImages))
