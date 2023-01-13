@@ -115,7 +115,7 @@ class Browser:
         self.auto_exposures = ["None", "Global","Saliency_map", "Local", 'Local without grids', 'Local on moving objects','Max Gradient srgb','Entropy','HDR Histogram Method']
         self.current_auto_exposure = "None"
 
-        self.scene_index = 18
+        self.scene_index = 16
         self.mertensVideo = []
         self.bit_depth = 8
         self.downscale_ratio = 0.12
@@ -419,7 +419,7 @@ class Browser:
         self.high_threshold = tk.DoubleVar()
         #print("BUILDING OUTLIER SLIDER", self.high_threshold)
         self.outlierSlider = RangeSliderH(root, [self.low_threshold, self.high_threshold], Width=400, Height=65,
-                                          min_val=0, max_val=0.9, show_value=True, padX=25
+                                          min_val=0.00, max_val=0.9, show_value=True, padX=25
                                           , line_s_color="#7eb1c2", digit_precision='.2f')
         #self.high_threshold.set(0.95)
         #self.outlierSlider.
@@ -1352,7 +1352,7 @@ class Browser:
             curr_frame_mean_list = self.weighted_means[first_ind]
             ind = send_ind
             val = curr_frame_mean_list[send_ind]
-            ind2 = self.eV[self.horSlider.get()]
+            ind2 = int(self.eV[self.horSlider.get()])
             val2 = curr_frame_mean_list[ind2]
             count3 = self.hists[first_ind][ind2]
 
@@ -1977,7 +1977,7 @@ class Browser:
 
         col_num_grids = 8
         row_num_grids = 8
-        low_threshold = 0
+        low_threshold = 0.02
         start_index = 15
         high_threshold = 1
         high_rate = 0.2

@@ -398,7 +398,17 @@ class Exposure:
         concat_weighted_means_num_dropped_pixels = np.concatenate((weighted_all_means, num_dropped_pixels), axis=2)
         weighted_means_flatten = np.apply_along_axis(self.correct_one_mean, 2, concat_weighted_means_num_dropped_pixels)
         weighted_means = weighted_means_flatten.reshape(self.num_frame, self.num_ims_per_frame)
+
+        num_good_pixels = flatten_weighted_ims >= 0
+        num_good_pixels = np.sum(num_good_pixels, axis=2)
+        num_good_pixels[num_good_pixels == 0] = -1  # this allows for division when values are 0(usally really bright stuff)
+        good_pixel_ims = flatten_weighted_ims
+        good_pixel_ims[good_pixel_ims < 0] = 0  # make all the negative 0.01s to 0
+
+        weighted_means = np.sum(good_pixel_ims, axis=2) / num_good_pixels
+
         return weighted_means
+
 
     def get_optimal_img_index(self, weighted_means):
         abs_weighted_errs_between_means_target = np.abs(weighted_means - self.target_intensity)
@@ -643,13 +653,24 @@ class Exposure:
 
             # current_map = current_map-0.10392
             for i in range(40):
-                new_map = np.where(current_frame[i] > self.high_threshold, 0, 1)
+                new_map_step = np.where(current_frame[i] > self.high_threshold, 0, 1)
+                new_map = np.where(current_frame[i] < self.low_threshold, 0, new_map_step)
                 map_sum = np.sum(new_map)
                 new_map = new_map * 18816 / map_sum
+                new_map = np.where(current_frame[i] > self.high_threshold, 0, new_map)
+                new_map = np.where(current_frame[i] < self.low_threshold, 0, new_map)
                 current_weighted_ims.append(np.multiply(current_frame[i], new_map))
             current_weighted_ims = np.array(current_weighted_ims)
 
-            the_means = np.mean(current_weighted_ims, axis=1)
+            num_good_pixels = np.logical_not(np.logical_or(downsampled_ims1[j] > self.high_threshold,
+                                                           downsampled_ims1[j] < self.low_threshold))
+            num_good_pixels = np.sum(num_good_pixels, axis=1)
+            num_good_pixels[
+                num_good_pixels == 0] = -1  # this allows for division when values are 0(usally really bright stuff)
+            good_pixel_ims = current_weighted_ims
+            good_pixel_ims[good_pixel_ims < 0] = 0  # make all the negative 0.01s to 0
+
+            the_means = np.sum(good_pixel_ims, axis=1) / num_good_pixels
 
             ind = 0
             min_residual = abs(the_means[0] - self.target_intensity)
@@ -671,7 +692,7 @@ class Exposure:
             num_frames, stack_size, height, width = downsampled_ims.shape
             downsampled_ims1 = np.reshape(downsampled_ims,(num_frames,stack_size,height*width))
             opti_inds=[]
-            ind = self.start_index
+            ind = int(self.start_index)
             opti_inds.append(ind)
             for j in range(1,100):
                 current_frame = downsampled_ims1[j]
@@ -695,20 +716,30 @@ class Exposure:
 
                     mask = np.where(saliency < 0.1, 0, 1)
                     combined = np.where(current_frame[i] > self.high_threshold, 0, mask)
+                    combined = np.where(current_frame[i] < self.low_threshold, 0, combined)
                     total_number = len(saliency)
                     number_nonzeros = np.count_nonzero(combined)
-                    salient_weight = 10/(total_number + number_nonzeros*9)
-                    None_salient_weight = 1/(total_number + number_nonzeros*9)
+                    salient_weight = 15/(total_number + number_nonzeros*14)
+                    None_salient_weight = 1/(total_number + number_nonzeros*14)
                     new_map = np.where(combined == 0, None_salient_weight,salient_weight)
                     new_map = np.where(current_frame[i] > self.high_threshold, 0, new_map)
+                    new_map = np.where(current_frame[i] < self.low_threshold, 0, new_map)
                     map_sum = np.sum(new_map)
                     new_map = new_map*18816/map_sum
                     current_weighted_ims.append(np.multiply(current_frame[i], new_map))
                 current_weighted_ims = np.array(current_weighted_ims)
 
+                num_good_pixels = np.logical_not(np.logical_or(downsampled_ims1[j] > self.high_threshold,
+                                                downsampled_ims1[j] < self.low_threshold))
+                num_good_pixels = np.sum(num_good_pixels, axis=1)
+                num_good_pixels[
+                    num_good_pixels == 0] = -1  # this allows for division when values are 0(usally really bright stuff)
+                good_pixel_ims = current_weighted_ims
+                good_pixel_ims[good_pixel_ims < 0] = 0  # make all the negative 0.01s to 0
 
+                the_means = np.sum(good_pixel_ims, axis=1) / num_good_pixels
 
-                the_means = np.mean(current_weighted_ims, axis=1)
+                #the_means = np.mean(current_weighted_ims, axis=1)
 
                 ind = 0
                 min_residual = abs(the_means[0] - self.target_intensity)
