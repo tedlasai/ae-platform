@@ -44,7 +44,7 @@ def one_img(image):
 
 #map_try = one_img_rbd(gray[1,18])
 
-images = np.load("image_Arrays_from_dng/Scene15_show_dng_imgs.npy")
+images = np.load("image_Arrays_from_dng/Scene1_show_dng_imgs.npy")
 images = images[:,:,::4,::4]
 
 gray = images
@@ -66,7 +66,7 @@ for i in range(x):
 
 
 		#image_out[i, j] = np.resize(one_img(gray[i, j]),(112,168))
-np.save('saliency_maps/Scene15_salient_maps_mbd', np.asarray(image_out))
+np.save('saliency_maps/Scene1_salient_maps_mbd', np.asarray(image_out))
 #np.save('Scene22_salient_maps', np.asarray(image_out))
 # initialize OpenCV's static saliency spectral residual detector and
 # compute the saliency map

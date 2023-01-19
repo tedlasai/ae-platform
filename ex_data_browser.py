@@ -46,7 +46,7 @@ class Browser:
                       'Scene16', 'Scene17', 'Scene18', 'Scene19', 'Scene20', 'Scene21','Scene22']
         self.frame_num = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
                           100, 100, 100, 100, 100,100]  # number of frames per position
-        self.stack_size = [40, 15, 40, 15, 15, 40, 15, 15, 15, 40, 40, 15, 15, 15, 40, 40, 40,
+        self.stack_size = [40, 15, 40, 15, 15, 40, 15, 15, 15, 40, 40, 40, 15, 15, 40, 40, 40,
                            40, 40, 40, 40, 40]  # number of shutter options per position
 
         self.SCALE_LABELS = {
@@ -880,7 +880,7 @@ class Browser:
                 # reg_vid_plot.append(self.tempImg_2)
 
                 # img = deepcopy(self.img_all[self.temp_img_ind])
-                img = deepcopy(self.img_raw[i][self.eV[i]])
+                img = deepcopy(self.img_raw[i][round(self.eV[i])])
                 print("IMG", img.shape)
 
                 reg_vid.append(img)
@@ -1092,7 +1092,7 @@ class Browser:
 
         elif (self.current_auto_exposure == "Entropy"):
             self.clear_rects()
-            input_ims = 'Image_Arrays_from_dng/Scene' + str(self.scene_index + 1) + '_show_dng_imgs.npy'
+            srgb_ims = 'Image_Arrays_from_dng/Scene' + str(self.scene_index + 1) + '_show_dng_imgs.npy'
             exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"],
                                                 target_intensity=self.exposureParams['target_intensity'],
                                                 r_percent=self.exposureParams['r_percent'],
@@ -1105,7 +1105,7 @@ class Browser:
                                                 number_of_previous_frames=self.exposureParams[
                                                     'number_of_previous_frames'])
             # exposures = exposure_class.Exposure(params = self.exposureParams)
-            self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.entropy_pipeline()
+            self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.entropy_pipeline(srgb_ims)
 
         elif (self.current_auto_exposure == "Max Gradient srgb"):
             self.clear_rects()
@@ -1337,8 +1337,8 @@ class Browser:
         # Image mean plot
         if len(self.hists) != 0:
 
-            first_ind = self.temp_img_ind // stack_size
-            send_ind = self.temp_img_ind % stack_size
+            first_ind = round(self.temp_img_ind // stack_size)
+            send_ind = round(self.temp_img_ind % stack_size)
             count1 = self.hists[first_ind][send_ind]
             # print("current srgb hist check")
             # print(self.show_srgb_hist_check)

@@ -86,7 +86,7 @@ def one_img(image):
 
 
 #map_try = one_img_rbd(gray[1,18])
-images = np.load("image_Arrays_from_dng/Scene15_show_dng_imgs.npy")
+images = np.load("image_Arrays_from_dng/Scene1_show_dng_imgs.npy")
 images = images[:,:,::4,::4]
 
 #images_raw = np.load("image_Arrays_exposure_new/Scene22_ds_raw_imgs.npy")
@@ -103,7 +103,7 @@ m = one_img_rbd(gray[i, j])
 print(time.time())
 saliency = cv2.resize(m, (168, 112))
 l =  np.where(saliency < 0.1, 0, 1)
-cv2.imwrite("saliencymap" '.jpg', (saliency * 255).astype(np.uint8))
+cv2.imwrite("saliencymap.jpg", (saliency * 255).astype(np.uint8))
 print("WRote")
 
 # saliency1 = cv2.saliency.StaticSaliencySpectralResidual_create()

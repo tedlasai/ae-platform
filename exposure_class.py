@@ -1,4 +1,6 @@
 import math
+
+import cv2
 import numpy as np
 import scipy
 
@@ -597,9 +599,13 @@ class Exposure:
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
         return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
 
-    def entropy_pipeline(self):
+    def entropy_pipeline(self, srgb_images):
 
-        raw_bayer = np.load(self.input_images)
+        raw_images = self.downsample_blending_rgb_channels()
+        num_frames, stack_size, height, width = raw_images.shape
+        raw_images1 = np.reshape(raw_images, (num_frames, stack_size, height * width))
+
+        raw_bayer = np.load(srgb_images)
         raw_bayer = raw_bayer[:, :, ::8, ::8, :]
         current_rgb_img = raw_bayer / (2 ** 8 - 1)
         current_rgb_img[:, :, :, :, 0] = current_rgb_img[:, :, :, :, 0] * 0.2126
@@ -615,12 +621,22 @@ class Exposure:
         from skimage.measure import shannon_entropy
         for j in range(1, 100):
             current_frame = downsampled_ims1[j]
+            raw_frame = raw_images1[j]
             current_weighted_ims = []
 
             # current_map = current_map-0.10392
             entropies = np.empty(40)
             for i in range(40):
-                entropies[i] = shannon_entropy(current_frame[i])
+                current_frame_exposure = current_frame[i]
+                output_image_shape = (168, 112)
+                current_frame_exposure = cv2.resize(current_frame_exposure, output_image_shape)
+                current_frame_exposure = current_frame_exposure.flatten()
+                raw_frame_exposure = raw_frame[i].flatten()
+                thresholded_current_frame = current_frame_exposure[raw_frame_exposure<self.high_threshold]
+
+                #thresholded_current_frame = current_frame_exposure[~np.isnan(current_frame)]
+
+                entropies[i] = shannon_entropy(thresholded_current_frame)
 
             ind = np.argmax(entropies)
 
@@ -719,8 +735,8 @@ class Exposure:
                     combined = np.where(current_frame[i] < self.low_threshold, 0, combined)
                     total_number = len(saliency)
                     number_nonzeros = np.count_nonzero(combined)
-                    salient_weight = 15/(total_number + number_nonzeros*14)
-                    None_salient_weight = 1/(total_number + number_nonzeros*14)
+                    salient_weight = 14/(total_number + number_nonzeros*13)
+                    None_salient_weight = 1/(total_number + number_nonzeros*13)
                     new_map = np.where(combined == 0, None_salient_weight,salient_weight)
                     new_map = np.where(current_frame[i] > self.high_threshold, 0, new_map)
                     new_map = np.where(current_frame[i] < self.low_threshold, 0, new_map)
