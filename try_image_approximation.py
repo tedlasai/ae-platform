@@ -217,7 +217,7 @@ else:
     show_one_stack_ims_temp_list.append(output_im_show1)
     print(count)
     count += 1
-    while count < TOTAL_IMS - 38*40 + 1:
+    while count < TOTAL_IMS:
         image_path2 = images[j]
         im2, mean2, output_im_algorithm2, output_im_show2 = get_normed_im(image_path2)
         if NEW_SCALES[k] == SCALE_LABELS[i % NUMBER_OF_IMAGES_PER_STACK]:

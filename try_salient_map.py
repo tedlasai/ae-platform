@@ -91,7 +91,8 @@ x,y,z,l,c = gray.shape
 
 
 #map_try = one_img_rbd(gray[1,18])
-
+# map_ = one_img_rbd(gray[10, 15])
+# cv2.imwrite("rbdshowmbd19_10_15" + '.jpg', (map_ * 255).astype(np.uint8))
 
 image_out = np.zeros((100,40,112,168))
 for i in range(x):

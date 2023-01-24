@@ -1086,7 +1086,11 @@ class Browser:
             # exposures = exposure_class.Exposure(params = self.exposureParams)
 
             self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_with_salient_map(salient_map)
-
+            f = open("s17_converge.txt", "a")
+            print(self.eV)
+            f.write("___\n")
+            f.write(str(self.eV))
+            f.close()
         elif (self.current_auto_exposure == "Max Gradient raw"):
             self.clear_rects()
             exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"],

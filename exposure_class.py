@@ -384,6 +384,13 @@ class Exposure:
         scene_hists = scene_hists_include_drooped_counts[:, :, 1:]
         return scene_hists, num_dropped_pixels
 
+    def get_hists_hdr(self, flatten_weighted_ims):
+        scene_hists_include_drooped_counts = self.hist_laxis(flatten_weighted_ims, self.num_hist_bins+1, (
+            0, 1.01))  #1 extra bin is used to count the number of 1
+        #num_dropped_pixels = scene_hists_include_drooped_counts[:, :, 0]
+        scene_hists = scene_hists_include_drooped_counts
+        return scene_hists
+
     def hist_laxis(self, data, n_bins,
                    range_limits):  # https://stackoverflow.com/questions/44152436/calculate-histograms-along-axis
         # Setup bins and determine the bin location for each element for the bins
@@ -521,6 +528,9 @@ class Exposure:
 
     def hdr_max_area_pipeline(self):
         hdr_ims, downsampled_ims = self.build_HDR_imgs()
+        x,y,z = hdr_ims.shape
+        hdr_ims_flatten = np.reshape(hdr_ims,(x,y*z))**(4.5)
+        hdr_hist = self.get_hists_hdr(hdr_ims_flatten)
         opti_inds = self.get_max_area_exposure_time(hdr_ims)
         print(type(opti_inds))
         print(opti_inds)
@@ -784,7 +794,7 @@ class Exposure:
                 ind = i
                 min_residual = abs(the_means_frame1[i] - self.target_intensity)
 
-        #ind = 15
+        # ind = 40
         # opti_inds.append(ind)
         # opti_inds.append(ind)
         opti_inds.append(ind)
