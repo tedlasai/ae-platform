@@ -839,17 +839,18 @@ class Browser:
                 self.updatePlot()
                 reg_vid_plot.append(self.tempImg_2)
 
-                img = deepcopy(self.img_all[self.temp_img_ind])
+                img = deepcopy(self.img_raw[i][round(self.verSlider.get())])
                 reg_vid.append(img)
                 print("IMG", img.shape)
 
             m1 = Image.fromarray(reg_vid[0])
             m2 = reg_vid_plot[0]
-            sv = self.get_concat_h_blank(m1, m2)
+
+            sv = m1
 
             self.check_fps()
 
-            fold_name = self.scene[self.scene_index] + "_0.12_Ex_" + list[int(self.verSlider.get())] + "_FPS_" + str(
+            fold_name = self.scene[self.scene_index] + "_0.12_Fixed__Ex_" + list[int(self.verSlider.get())] + "_FPS_" + str(
                 self.video_fps)
             folderStore = os.path.join(os.path.dirname(__file__), 'Regular_Videos')
             os.makedirs(folderStore, exist_ok=True)
@@ -864,7 +865,7 @@ class Browser:
             for i in range(len(reg_vid)):
                 tempImg = Image.fromarray(reg_vid[i])
                 temp_img_plot = reg_vid_plot[i]
-                array = np.array(self.get_concat_h_blank(tempImg, temp_img_plot))
+                array = np.array(tempImg)
                 video.write(cv2.cvtColor(array, cv2.COLOR_RGB2BGR))
 
             video.release()
