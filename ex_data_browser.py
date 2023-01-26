@@ -15,7 +15,7 @@ import platform
 import regular
 import high_res_auto_ex_video
 import exposure_class
-from test_pipline import local_interested_grids_generater
+#from test_pipline import local_interested_grids_generater
 
 
 mp.rcParams.update({'axes.titlesize': 14, 'font.size': 11, 'font.family': 'arial'})
@@ -46,7 +46,7 @@ class Browser:
                       'Scene16', 'Scene17', 'Scene18', 'Scene19', 'Scene20', 'Scene21','Scene22']
         self.frame_num = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
                           100, 100, 100, 100, 100,100]  # number of frames per position
-        self.stack_size = [40, 15, 40, 15, 15, 40, 15, 15, 15, 40, 40, 15, 15, 15, 15, 40, 40,
+        self.stack_size = [40, 15, 40, 40, 15, 40, 15, 15, 15, 40, 40, 15, 15, 15, 15, 40, 40,
                            40, 40, 40, 40, 40]  # number of shutter options per position
 
         self.SCALE_LABELS = {
@@ -1145,8 +1145,8 @@ class Browser:
             self.clear_rects_local_wo_grids()
             consider_outliers = bool(self.local_consider_outliers_check)
 
-            list_local = local_interested_grids_generater(self.row_num_grids, self.col_num_grids, self.rectangles)
-
+            #list_local = local_interested_grids_generater(self.row_num_grids, self.col_num_grids, self.rectangles)
+            list_local = []
             exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"],
                                                 target_intensity=self.exposureParams['target_intensity'],
                                                 r_percent=self.exposureParams['r_percent'],
