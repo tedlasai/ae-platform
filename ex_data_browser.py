@@ -826,31 +826,35 @@ class Browser:
 
         reg_vid = []
         reg_vid_plot = []
-        list = ['15', '8', '6', '4', '2', '1', '05', '1-4', '1-8', '1-15', '1-30', '1-60', '1-125', '1-250', '1-500']
+        list = ['15','13','10','8','6','5','4','3.2','2.5','2','1.6','1.3','1','0.8','0.6','0.5','0.4','0.3','1/4','1/5','1/6','1/8','1/10','1/13','1/15','1/20','1/25','1/30','1/40','1/50','1/60','1/80','1/100','1/125','1/160','1/200','1/250','1/320','1/400','1/500']
 
         self.mertensVideo = []
         self.mertens_pic = []
 
+        print("RES CHECK", self.res_check)
+
         if self.res_check == 0 and self.current_auto_exposure == "None":
 
+
             for i in range(100):
-                self.temp_img_ind = int(i) * self.stack_size[self.scene_index] + int(self.verSlider.get())
                 self.check = False
                 self.updatePlot()
-                reg_vid_plot.append(self.tempImg_2)
+                # reg_vid_plot.append(self.tempImg_2)
 
-                img = deepcopy(self.img_raw[i][round(self.verSlider.get())])
-                reg_vid.append(img)
+                # img = deepcopy(self.img_all[self.temp_img_ind])
+                img = deepcopy(self.img_raw[i][round(float(self.start_index.get()))])
                 print("IMG", img.shape)
 
-            m1 = Image.fromarray(reg_vid[0])
-            m2 = reg_vid_plot[0]
+                reg_vid.append(img)
 
+            m1 = Image.fromarray(reg_vid[0])
+            # m2 = reg_vid_plot[0]
+            # sv = self.get_concat_h_blank(m1, m2)
             sv = m1
 
             self.check_fps()
 
-            fold_name = self.scene[self.scene_index] + "_0.12_Fixed__Ex_" + list[int(self.verSlider.get())] + "_FPS_" + str(
+            fold_name = self.scene[self.scene_index] + "_dng_pipeline_" + 'fixed' + "_FPS_" + str(
                 self.video_fps)
             folderStore = os.path.join(os.path.dirname(__file__), 'Regular_Videos')
             os.makedirs(folderStore, exist_ok=True)
@@ -859,16 +863,21 @@ class Browser:
             # capture the image and save it on the save path
             os.makedirs(folderStore, exist_ok=True)
 
+            # print(self.eV)
             video = cv2.VideoWriter(connected_image, cv2.VideoWriter_fourcc('M', 'J', "P", 'G'), self.video_fps,
                                     (sv.width, sv.height))
 
             for i in range(len(reg_vid)):
                 tempImg = Image.fromarray(reg_vid[i])
-                temp_img_plot = reg_vid_plot[i]
+                # temp_img_plot = reg_vid_plot[i]
+
+                # array = np.array(self.get_concat_h_blank(tempImg, temp_img_plot))
                 array = np.array(tempImg)
                 video.write(cv2.cvtColor(array, cv2.COLOR_RGB2BGR))
 
             video.release()
+
+            self.check_fps()
 
         elif self.res_check == 0 and self.current_auto_exposure != "None":
             if not len(self.eV) == 100:
@@ -1188,6 +1197,13 @@ class Browser:
         elif (self.current_auto_exposure == "Local on moving objects"):
             self.clear_rects_local()
             list_local = self.list_local_without_grids_moving_objects()
+
+            import pickle
+
+            name = f"local_pickle/Scene{self.scene_index+1}.pkl"
+            print("LIST LOCAL", list_local)
+            with open(name, 'wb') as handle:
+                pickle.dump({'boxes': list_local}, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
             exposures = exposure_class.Exposure(input_ims, downsample_rate=self.exposureParams["downsample_rate"],
                                                 target_intensity=self.exposureParams['target_intensity'],
@@ -2339,6 +2355,7 @@ class Browser:
     def exposure_class_construction_moving_object(self, input_ims, exposureparams):
         self.clear_rects_local()
         list_local = self.list_local_without_grids_moving_objects()
+
 
         exposures = exposure_class.Exposure(input_ims, downsample_rate=exposureparams["downsample_rate"],
                                             r_percent=exposureparams['r_percent'],

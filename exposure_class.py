@@ -632,11 +632,11 @@ class Exposure:
                 current_frame_exposure = cv2.resize(current_frame_exposure, output_image_shape)
                 current_frame_exposure = current_frame_exposure.flatten()
                 raw_frame_exposure = raw_frame[i].flatten()
-                thresholded_current_frame = current_frame_exposure[raw_frame_exposure<self.high_threshold]
+                thresholded_current_frame = current_frame_exposure#[raw_frame_exposure<self.high_threshold]
 
                 #thresholded_current_frame = current_frame_exposure[~np.isnan(current_frame)]
 
-                entropies[i] = shannon_entropy(thresholded_current_frame)
+                entropies[i] = shannon_entropy(thresholded_current_frame)#*(1/self.high_threshold)
 
             ind = np.argmax(entropies)
 
