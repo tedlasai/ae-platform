@@ -86,7 +86,7 @@ def one_img(image):
 
 
 #map_try = one_img_rbd(gray[1,18])
-images = np.load("image_Arrays_from_dng/Scene1_show_dng_imgs.npy")
+images = np.load("image_Arrays_from_dng/Scene25_show_dng_imgs.npy")
 images = images[:,:,::4,::4]
 
 #images_raw = np.load("image_Arrays_exposure_new/Scene22_ds_raw_imgs.npy")
@@ -99,7 +99,12 @@ x,y,z,l,c = gray.shape
 i = 0
 j = 20
 print(time.time())
-m = one_img_rbd(gray[i, j])
+gray = cv2.imread("1P0A1034.JPG")
+#print(gray.shape)
+#gray = gray[:,""]
+#m = one_img_rbd(gray[i, j])
+gray = cv2.resize(gray, (168, 112))
+m = one_img_rbd(gray)
 print(time.time())
 saliency = cv2.resize(m, (168, 112))
 l =  np.where(saliency < 0.1, 0, 1)

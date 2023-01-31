@@ -721,11 +721,11 @@ class Exposure:
                 for i in range(40):
                     #
                     if j > 1:
-                        pre_maps = np.empty((112,168,1))
-                        for k in range(1):
+                        pre_maps = np.empty((112,168,2))
+                        for k in range(2):
                             pre_maps[:,:,k] = salient_map[j-k-1][opti_inds[j-k-1]]
 
-                        #saliency = np.mean(pre_maps,axis=1).reshape(112*168)
+                        saliency = np.mean(pre_maps,axis=2).reshape(112*168)
                         saliency = salient_map[j-1][opti_inds[j-1]].reshape(112*168)
                     else:
                         saliency = np.array(current_map)

@@ -43,11 +43,11 @@ class Browser:
 
         self.scene = ['Scene1', 'Scene2', 'Scene3', 'Scene4', 'Scene5', 'Scene6',
                       'Scene7', 'Scene8', 'Scene9', 'Scene10', 'Scene11', 'Scene12', 'Scene13', 'Scene14', 'Scene15',
-                      'Scene16', 'Scene17', 'Scene18', 'Scene19', 'Scene20', 'Scene21','Scene22']
+                      'Scene16', 'Scene17', 'Scene18', 'Scene19', 'Scene20', 'Scene21','Scene22', 'Scene23', 'Scene24', 'Scene25', 'Scene26']
         self.frame_num = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                          100, 100, 100, 100, 100,100]  # number of frames per position
-        self.stack_size = [40, 15, 40, 15, 15, 40, 15, 15, 15, 40, 40, 40, 15, 15, 40, 40, 40,
-                           40, 40, 40, 40, 40]  # number of shutter options per position
+                          100, 100, 100, 100, 100,100, 100, 100,100, 100]  # number of frames per position
+        self.stack_size = [40, 15, 40, 40, 15, 40, 15, 15, 15, 40, 40, 40, 15, 15, 40, 40, 40,
+                           40, 40, 40, 40, 40, 40, 40,40,40]  # number of shutter options per position
 
         self.SCALE_LABELS = {
             0: '15"',
@@ -432,7 +432,7 @@ class Browser:
 
     def start_index_text_box(self):
         self.start_index = tk.StringVar()
-        self.start_index.set("15")
+        self.start_index.set("39")
         tk.Label(root, text="start index").grid(row=29, column=2)
         self.e1 = tk.Entry(root, textvariable=self.start_index)
         self.e1.grid(row=30, column=2)
