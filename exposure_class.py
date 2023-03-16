@@ -865,7 +865,7 @@ class Exposure:
                                                                    current_frame[i] < self.low_threshold))
                     num_good_pixels = np.sum(num_good_pixels)
                     new_map_ = new_map*(total_number + number_nonzeros*13)
-                    new_map = new_map*num_good_pixels/map_sum #normalizes the map(this might be wrong)
+                    new_map = (new_map/map_sum)*18816 #normalizes the map(this might be wrong)
                     current_weighted_ims.append(np.multiply(current_frame[i], new_map))
                     if (j == 59) and (i == 15):
                         map_ = new_map_.flatten()
@@ -885,15 +885,18 @@ class Exposure:
 
                 current_weighted_ims = np.array(current_weighted_ims)
 
-                num_good_pixels = np.logical_not(np.logical_or(downsampled_ims1[j] > self.high_threshold,
-                                                downsampled_ims1[j] < self.low_threshold))
-                num_good_pixels = np.sum(num_good_pixels, axis=1)
-                num_good_pixels[
-                    num_good_pixels == 0] = -1  # this allows for division when values are 0(usally really bright stuff)
-                good_pixel_ims = current_weighted_ims
-                good_pixel_ims[good_pixel_ims < 0] = 0  # make all the negative 0.01s to 0
+                # num_good_pixels = np.logical_not(np.logical_or(downsampled_ims1[j] > self.high_threshold,
+                #                                 downsampled_ims1[j] < self.low_threshold))
+                # num_good_pixels = np.sum(num_good_pixels, axis=1)
+                # num_good_pixels[
+                #     num_good_pixels == 0] = -1  # this allows for division when values are 0(usally really bright stuff)
+                # good_pixel_ims = current_weighted_ims
+                # good_pixel_ims[good_pixel_ims < 0] = 0  # make all the negative 0.01s to 0
+                #
+                # the_means = np.sum(good_pixel_ims, axis=1)/num_good_pixels
 
-                the_means = np.sum(good_pixel_ims, axis=1)/num_good_pixels
+                #I THINK ALL YOU NEED IS
+                the_means = np.mean(current_weighted_ims, axis=1)
 
                 #the_means = np.mean(current_weighted_ims, axis=1)
 
