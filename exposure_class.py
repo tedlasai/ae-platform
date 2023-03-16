@@ -361,6 +361,7 @@ class Exposure:
         scene_hists = scene_hists_include_drooped_counts[:, :, 1:]
         return scene_hists, num_dropped_pixels
 
+
     def hist_laxis(self, data, n_bins,
                    range_limits):  # https://stackoverflow.com/questions/44152436/calculate-histograms-along-axis
         # Setup bins and determine the bin location for each element for the bins
@@ -639,15 +640,115 @@ class Exposure:
                 entropies[i] = shannon_entropy(thresholded_current_frame)#*(1/self.high_threshold)
 
             ind = np.argmax(entropies)
-
+            if j == 59:
+                print("get entropy")
+                print(entropies)
+                print(ind)
             opti_inds.append(ind)
 
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
 
+        x = int(round(opti_inds_adjusted_previous_n_frames[59]))
+        print("x")
+        print(x)
+
+        print("end entropy")
         weighted_means = np.zeros((100, 40))
         hists = np.zeros((100, 40, 101))
         hists_before_ds_outlier = np.zeros((100, 40, 101))
+        print(np.round(opti_inds_adjusted_previous_n_frames).astype(int))
+        import pandas as pd
+        import openpyxl
+        x = np.rint(opti_inds_adjusted_previous_n_frames)
+        print(x)
+        df = pd.DataFrame(x)
+        df.to_csv('entropy_output.csv')
+        return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
 
+    def pipeline_old(self):
+        downsampled_ims = self.downsample_blending_rgb_channels()
+        #generate histograms
+        hist_ims = np.array(downsampled_ims)
+        hist_ims[hist_ims>self.high_threshold] = -0.01
+        hist_ims = np.reshape(hist_ims, (self.num_frame, self.num_ims_per_frame, self.h * self.w))
+        hists, dropped = self.get_hists(hist_ims)
+        weighted_means = self.get_means(dropped, hist_ims)
+        num_frames, stack_size, height, width = downsampled_ims.shape
+        downsampled_ims1 = np.reshape(downsampled_ims, (num_frames, stack_size, height * width))
+        opti_inds = []
+        ind = self.start_index
+        opti_inds.append(ind)
+        for j in range(1, 100):
+            current_frame = downsampled_ims1[j]
+            current_weighted_ims = []
+
+            # current_map = current_map-0.10392
+            for i in range(40):
+                new_map_step = np.where(current_frame[i] > self.high_threshold, 0, 1)
+                new_map = np.where(current_frame[i] < self.low_threshold, 0, new_map_step)
+                map_sum = np.sum(new_map)
+                new_map = new_map# * map_sum / map_sum
+                new_map = np.where(current_frame[i] > self.high_threshold, 0, new_map)
+                new_map = np.where(current_frame[i] < self.low_threshold, 0, new_map)
+                current_weighted_ims.append(np.multiply(current_frame[i], new_map))
+            current_weighted_ims = np.array(current_weighted_ims)
+
+            num_good_pixels = np.logical_not(np.logical_or(downsampled_ims1[j] > self.high_threshold,
+                                                           downsampled_ims1[j] < self.low_threshold))
+            num_good_pixels = np.sum(num_good_pixels, axis=1)
+            num_good_pixels[
+                num_good_pixels == 0] = -1  # this allows for division when values are 0(usally really bright stuff)
+            good_pixel_ims = current_weighted_ims
+            good_pixel_ims[good_pixel_ims < 0] = 0  # make all the negative 0.01s to 0
+
+            the_means = np.sum(good_pixel_ims, axis=1)
+
+            ind = 0
+            min_residual = abs(the_means[0] - self.target_intensity)
+            for i in range(1, 40):
+                if abs(the_means[i] - self.target_intensity) < min_residual:
+                    ind = i
+                    min_residual = abs(the_means[i] - self.target_intensity)
+
+            opti_inds.append(ind)
+
+        opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
+        hists_before_ds_outlier = np.zeros((100, 40, 101))
+
+        print("get global outputs")
+        x = int(round(opti_inds_adjusted_previous_n_frames[59]))
+        print(x)
+        print(hists[59][x])
+
+        hist_ims = downsampled_ims1[59][22]
+        # hists, dropped = self.get_hists(hist_ims)
+        hist = self.hist_laxis(hist_ims, 100, (0, 1))
+        print("s16_59_22_HIST")
+        print(hist)
+        print(np.sum(hist))
+        print("end global")
+        hist_ims = downsampled_ims1[59][26]
+        # hists, dropped = self.get_hists(hist_ims)
+        hist = self.hist_laxis(hist_ims, 100, (0, 1))
+        print("s16_59_26_HIST")
+        print(hist)
+        print(np.sum(hist))
+        print("end ENTROPY")
+        hist_ims = downsampled_ims1[59][9]
+        hist = self.hist_laxis(hist_ims, 100, (0, 1))
+        print("s16_59_9_HIST")
+        print(hist)
+        print(np.sum(hist))
+        print("end LOCAL")
+        hist_ims = downsampled_ims1[59][15]
+        hist = self.hist_laxis(hist_ims, 100, (0, 1))
+        print("s16_59_15_HIST")
+        print(hist)
+        print(np.sum(hist))
+        print("end saliency")
+
+
+        print(np.round(opti_inds_adjusted_previous_n_frames).astype(int))
         return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
 
     def pipeline(self):
@@ -672,7 +773,7 @@ class Exposure:
                 new_map_step = np.where(current_frame[i] > self.high_threshold, 0, 1)
                 new_map = np.where(current_frame[i] < self.low_threshold, 0, new_map_step)
                 map_sum = np.sum(new_map)
-                new_map = new_map * 18816 / map_sum
+                new_map = new_map #* 18816 / map_sum
                 new_map = np.where(current_frame[i] > self.high_threshold, 0, new_map)
                 new_map = np.where(current_frame[i] < self.low_threshold, 0, new_map)
                 current_weighted_ims.append(np.multiply(current_frame[i], new_map))
@@ -699,10 +800,28 @@ class Exposure:
 
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
         hists_before_ds_outlier = np.zeros((100, 40, 101))
+        # print("get global outputs")
+        # x = int(round(opti_inds_adjusted_previous_n_frames[59]))
+        # print(x)
+        # print(hists[59][x])
+        #
+        # hist_ims = downsampled_ims1[59][x]
+        # # hists, dropped = self.get_hists(hist_ims)
+        # hist = self.hist_laxis(hist_ims, 100, (0, 1.0001))
+        # print("s16_59_22_HIST")
+        # print(hist)
+        # print(np.sum(hist))
+        # print("end global")
+        import pandas as pd
+        import openpyxl
+        x = np.rint(opti_inds_adjusted_previous_n_frames)
+        print(x)
+        df = pd.DataFrame(x)
+
+        # saving the dataframe
+        df.to_csv('global_output.csv')
 
         return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
-
-
     def pipeline_with_salient_map(self,salient_map):
             downsampled_ims = self.downsample_blending_rgb_channels()
             num_frames, stack_size, height, width = downsampled_ims.shape
@@ -734,15 +853,36 @@ class Exposure:
                     combined = np.where(current_frame[i] > self.high_threshold, 0, mask)
                     combined = np.where(current_frame[i] < self.low_threshold, 0, combined)
                     total_number = len(saliency)
-                    number_nonzeros = np.count_nonzero(combined)
+                    number_nonzeros = np.count_nonzero(combined) #number of salient pixels between the thresholds
                     salient_weight = 14/(total_number + number_nonzeros*13)
                     None_salient_weight = 1/(total_number + number_nonzeros*13)
-                    new_map = np.where(combined == 0, None_salient_weight,salient_weight)
+                    new_map = np.where(combined == 0, None_salient_weight,salient_weight) #build a map with the salient weights
+                    #zero out stuff above and below threshold
                     new_map = np.where(current_frame[i] > self.high_threshold, 0, new_map)
                     new_map = np.where(current_frame[i] < self.low_threshold, 0, new_map)
                     map_sum = np.sum(new_map)
-                    new_map = new_map*18816/map_sum
+                    num_good_pixels = np.logical_not(np.logical_or(current_frame[i] > self.high_threshold,
+                                                                   current_frame[i] < self.low_threshold))
+                    num_good_pixels = np.sum(num_good_pixels)
+                    new_map_ = new_map*(total_number + number_nonzeros*13)
+                    new_map = new_map*num_good_pixels/map_sum #normalizes the map(this might be wrong)
                     current_weighted_ims.append(np.multiply(current_frame[i], new_map))
+                    if (j == 59) and (i == 15):
+                        map_ = new_map_.flatten()
+                        im = current_frame[i].flatten()
+                        x = np.zeros(100)
+                        for ii,e in enumerate(map_):
+                            x[int(im[ii]//0.01)] += e
+                        print(x)
+                        print(sum(x))
+                        print("end")
+                        # import pandas as pd
+                        # import openpyxl
+                        # df = pd.DataFrame(x)
+                        #
+                        # # saving the dataframe
+                        # df.to_csv('saliency_hist.csv')
+
                 current_weighted_ims = np.array(current_weighted_ims)
 
                 num_good_pixels = np.logical_not(np.logical_or(downsampled_ims1[j] > self.high_threshold,
@@ -753,7 +893,7 @@ class Exposure:
                 good_pixel_ims = current_weighted_ims
                 good_pixel_ims[good_pixel_ims < 0] = 0  # make all the negative 0.01s to 0
 
-                the_means = np.sum(good_pixel_ims, axis=1) / num_good_pixels
+                the_means = np.sum(good_pixel_ims, axis=1)/num_good_pixels
 
                 #the_means = np.mean(current_weighted_ims, axis=1)
 
@@ -772,6 +912,18 @@ class Exposure:
             hists = np.zeros((100,40,101))
             hists_before_ds_outlier = np.zeros((100,40,101))
 
+            print("get saliency outputs")
+            x = int(round(opti_inds_adjusted_previous_n_frames[58]))
+            print(x)
+            #print(hists[59][x])
+            print("end saliency")
+            print(len(opti_inds_adjusted_previous_n_frames))
+            import pandas as pd
+            import openpyxl
+            x = np.rint(opti_inds_adjusted_previous_n_frames)
+            print(x)
+            df = pd.DataFrame(x)
+            df.to_csv('saliency_output.csv')
             return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
 
 
@@ -793,5 +945,19 @@ class Exposure:
         hists = np.zeros((100, 40, 101))
         # opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
+        print("get local outputs")
+        x = int(round(opti_inds_adjusted_previous_n_frames[59]))
+        print(x)
+        y = int(round(opti_inds[59]))
+        print(y)
+        print(local_hists[59][x])
+        print(local_hists[59][y])
+        print("end local")
+
+        import pandas as pd
+        x = np.rint(opti_inds_adjusted_previous_n_frames)
+        print(x)
+        df = pd.DataFrame(x)
+        df.to_csv('local_output.csv')
         return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
 

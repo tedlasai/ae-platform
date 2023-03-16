@@ -4,7 +4,7 @@ import time
 import numpy as np
 start_time = time.time()
 #C:\Users\tedla\PycharmProjects\4d-data-browser\Image_Arrays_from_dng_separate
-path ='C:/Users/tedla/PycharmProjects/4d-data-browser/Image_Arrays_exposure_separate_copy/'
+path ='C:/Users/tedla/PycharmProjects/4d-data-browser/Image_Arrays_exposure_separate/'
 algoImages = []
 listdir_ = os.listdir(path)
 npy_frames = [path + f for f in listdir_ if f.endswith(('.npy'))]
@@ -24,7 +24,7 @@ np.save(save_loc+'/'+filename, np.asarray(algoImages))
 mid_time = time.time()
 print("running time1: {:.3f}".format(mid_time-start_time))
 
-path =  'C:/Users/tedla/PycharmProjects/4d-data-browser/Image_Arrays_from_dng_separate_copy/'
+path =  'C:/Users/tedla/PycharmProjects/4d-data-browser/Image_Arrays_from_dng_separate/'
 showImages = []
 listdir_ = os.listdir(path)
 npy_frames = [path + f for f in listdir_ if f.endswith(('.npy'))]
