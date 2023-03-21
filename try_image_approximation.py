@@ -12,7 +12,7 @@ means = []
 NUMBER_OF_IMAGES_PER_STACK = len(SCALE_LABELS)
 NUMBER_OF_IMAGES_PER_STACK_NEW = len(NEW_SCALES)
 TOTAL_IMS = 100 * NUMBER_OF_IMAGES_PER_STACK_NEW
-
+TOTAL_IMS = 40
 #image 3 4", 4 2", 5 1", approximate 4 with 3 and 5,
 def one_pixel_function(im1,im2,x1,x2,targetx):
     result = (im1/x1 + im2/x2)*targetx/2
@@ -178,8 +178,8 @@ def save_im(raw_bayer,im_path):
 
 start_time = time.time()
 
-read_path = 'F:/4ddata\dngs\Scene29/'
-scene_num = '29'
+read_path = 'C:/Users/beixuan/Documents/scene26/'
+scene_num = '26'
 
 save_loc = os.path.join(os.path.dirname(__file__), 'Image_Arrays_exposure_separate')
 os.makedirs(save_loc, exist_ok=True)

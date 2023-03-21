@@ -43,11 +43,11 @@ class Browser:
 
         self.scene = ['Scene1', 'Scene2', 'Scene3', 'Scene4', 'Scene5', 'Scene6',
                       'Scene7', 'Scene8', 'Scene9', 'Scene10', 'Scene11', 'Scene12', 'Scene13', 'Scene14', 'Scene15',
-                      'Scene16', 'Scene17', 'Scene18', 'Scene19', 'Scene20', 'Scene21','Scene22']
+                      'Scene16', 'Scene17', 'Scene18', 'Scene19', 'Scene20', 'Scene21','Scene22',"Scene23","Scene24","Scene25","Scene26"]
         self.frame_num = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
-                          100, 100, 100, 100, 100,100]  # number of frames per position
+                          100, 100, 100, 100, 100,100,100,100,100,100]  # number of frames per position
         self.stack_size = [40, 15, 40, 40, 15, 40, 15, 15, 15, 40, 40, 15, 15, 15, 15, 40, 40,
-                           40, 40, 40, 40, 40]  # number of shutter options per position
+                           40, 40, 40, 40, 40,40,40,40,40]  # number of shutter options per position
 
         self.SCALE_LABELS = {
             0: '15"',
@@ -111,7 +111,7 @@ class Browser:
         self.NEW_SCALES = [15,13,10,8,6,5,4,3.2,2.5,2,1.6,1.3,1,0.8,0.6,0.5,0.4,0.3,1/4,1/5,1/6,1/8,1/10,1/13,1/15,1/20,1/25,1/30,1/40,1/50,1/60,1/80,1/100,1/125,1/160,1/200,1/250,1/320,1/400,1/500]
 
         self.eV = []
-        self.auto_exposures = ["None", "Global","Saliency_map", "Local", 'Local without grids', 'Local on moving objects','Max Gradient srgb','Max Gradient raw','HDR Histogram Method']
+        self.auto_exposures = ["None", "Global","Saliency_map", "Local1", 'Local without grids', 'Semantic','Max Gradient srgb','Max Gradient raw','HDR Histogram Method']
         self.current_auto_exposure = "None"
 
         self.scene_index = 0
@@ -161,7 +161,7 @@ class Browser:
 
         self.canvas = tk.Canvas(root, cursor="cross", width=self.photo.width(), height=self.photo.height(),
                                 borderwidth=0, highlightthickness=0)
-        self.canvas.grid(row=1, column=1, columnspan=2, rowspan=27, padx=0, pady=0, sticky=tk.NW)
+        self.canvas.grid(row=1, column=1, columnspan=3, rowspan=53, padx=0, pady=0, sticky=tk.NW)
         self.canvas_img = self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
         self.current_rects = []  # the rectangles drawn in canvas
         self.rectangles = []  # the coordinates of the rectangles
@@ -235,9 +235,9 @@ class Browser:
         self.number_of_previous_frames_text_box()
         self.stepsize_limit_text_box()
         self.save_interested_moving_objects_button()
-        self.make_global_videos_button()
-        self.make_local_videos_button()
-        self.make_moving_object_videos_button()
+        # self.make_global_videos_button()
+        # self.make_local_videos_button()
+        # self.make_moving_object_videos_button()
         self.local_interested_name_text_box()
         self.local_interested_global_area_percentage_box()
         self.show_SRGB_hist_check_box()
@@ -245,52 +245,53 @@ class Browser:
     def local_interested_name_text_box(self):
         self.local_interested_name = tk.StringVar()
         self.local_interested_name.set("")
-        tk.Label(root, text="Name of Interested").grid(row=10, column=5)
-        self.e1 = tk.Entry(root, textvariable=self.local_interested_name)
-        self.e1.grid(row=11, column=5, sticky=tk.E)
+        # tk.Label(root, text="Name of Interested").grid(row=10, column=5)
+        # self.e1 = tk.Entry(root, textvariable=self.local_interested_name)
+        # self.e1.grid(row=11, column=5, sticky=tk.E)
 
     def target_intensity_text_box(self):
         self.target_intensity = tk.DoubleVar()
         self.target_intensity.set(0.13)
-        tk.Label(root, text="target intensity").grid(row=29, column=5)
+        # tk.Label(root, text="target intensity").grid(row=29, column=5)
+        # self.e1 = tk.Entry(root, textvariable=self.target_intensity)
+        # self.e1.grid(row=30, column=5, sticky=tk.E)
+        tk.Label(root, text="target histogram mean").grid(row=29, column=1)
         self.e1 = tk.Entry(root, textvariable=self.target_intensity)
-        self.e1.grid(row=30, column=5, sticky=tk.E)
-
+        self.e1.grid(row=30, column=1, sticky=tk.E)
 
 
     def local_interested_global_area_percentage_box(self):
         self.local_interested_global_area_percentage = tk.DoubleVar()
         self.local_interested_global_area_percentage.set(0.0)
-        tk.Label(root, text="Global percentage on local selection").grid(row=25, column=5)
-        self.e1 = tk.Entry(root, textvariable=self.local_interested_global_area_percentage)
-        self.e1.grid(row=26, column=5, sticky=tk.E)
+        # tk.Label(root, text="Global percentage on local selection").grid(row=25, column=5)
+        # self.e1 = tk.Entry(root, textvariable=self.local_interested_global_area_percentage)
+        # self.e1.grid(row=26, column=5, sticky=tk.E)
 
     def make_global_videos_button(self):
-        self.makeGlobalVideosButton = tk.Button(root, text='Make Global Videos', fg='#ffffff', bg='#999999',
+        self.makeGlobalVideosButton = tk.Button(root, text='Make Global Videos', fg='#777777',
                                                 activebackground='#454545',
                                                 relief=tk.RAISED, width=16, padx=10, pady=5,
                                                 font=(self.widgetFont, self.widgetFontSize),
                                                 command=self.make_global_videos)
-        self.makeGlobalVideosButton.grid(row=11 - 4, column=5, sticky=tk.E)
+        self.makeGlobalVideosButton.grid(row=35, column=1,rowspan=2, sticky=tk.E)
 
     def make_local_videos_button(self):
-        self.makeLocalVideosButton = tk.Button(root, text='Make Local Videos', fg='#ffffff', bg='#999999',
-                                               activebackground='#454545',
+        self.makeLocalVideosButton = tk.Button(root, text='Make Local Videos', fg='#777777',
                                                relief=tk.RAISED, width=16, padx=10, pady=5,
                                                font=(self.widgetFont, self.widgetFontSize),
                                                command=self.make_local_videos)
-        self.makeLocalVideosButton.grid(row=12 - 4, column=5, sticky=tk.E)
+        self.makeLocalVideosButton.grid(row=35, column=2,rowspan=2, sticky=tk.E)
 
     def make_moving_object_videos_button(self):
-        self.makeMovingObjectVideosButton = tk.Button(root, text='Moving Object Videos', fg='#ffffff', bg='#999999',
+        self.makeMovingObjectVideosButton = tk.Button(root, text='Moving Local Videos', fg='#777777',
                                                activebackground='#454545',
                                                relief=tk.RAISED, width=16, padx=10, pady=5,
                                                font=(self.widgetFont, self.widgetFontSize),
                                                command=self.make_moving_object_videos)
-        self.makeMovingObjectVideosButton.grid(row=13 - 4, column=5, sticky=tk.E)
+        self.makeMovingObjectVideosButton.grid(row=35, column=3,rowspan=2, sticky=tk.E)
 
     def save_interested_moving_objects_fuction(self):
-        if self.current_auto_exposure == "Local on moving objects" and len(self.moving_rectids) > 0:
+        if self.current_auto_exposure == "Local" and len(self.moving_rectids) > 0:
             w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
             curr_frame = self.horSlider.get()
             temp = []
@@ -320,12 +321,12 @@ class Browser:
 
 
     def save_interested_moving_objects_button(self):
-        self.movingObjectButton = tk.Button(root, text='Save Interested Area', fg='#ffffff', bg='#999999',
+        self.movingObjectButton = tk.Button(root, text='Save Interested Area', fg='#777777',
                                             activebackground='#454545',
-                                            relief=tk.RAISED, width=16, padx=10, pady=5,
+                                            relief=tk.RAISED, width=16, padx=8, pady=5,
                                             font=(self.widgetFont, self.widgetFontSize),
                                             command=self.save_interested_moving_objects_fuction)
-        self.movingObjectButton.grid(row=10 - 4, column=5,
+        self.movingObjectButton.grid(row=31, rowspan=2, column=3,
                                      sticky=tk.E)  # initial row was 26, +1 increments for all other rows
 
     def hdr_mean_button(self):
@@ -353,16 +354,21 @@ class Browser:
 
     def show_Raw_Ims_check_box(self):
         self.useRawIms_ = tk.IntVar()
-        self.c1 = tk.Checkbutton(root, text='Show Raw Image', variable=self.useRawIms_, offvalue=0, onvalue=1,
-                                 command=self.switch_raw)
-        self.c1.grid(row=24, column=5)
+        self.useRawIms_.set(1)
+        self.useRawIms = self.useRawIms_
+        # self.c1 = tk.Checkbutton(root, text='Show Raw Image', variable=self.useRawIms_, offvalue=0, onvalue=1,
+        #                          command=self.switch_raw)
+        # self.c1.grid(row=24, column=5)
         #self.c1.select()
 
     def show_SRGB_hist_check_box(self):
         self.show_srgb_hist_check_ = tk.IntVar()
+        # self.c1 = tk.Checkbutton(root, text='Show SRGB Hist', variable=self.show_srgb_hist_check_, offvalue=0, onvalue=1,
+        #                          command=self.switch_SRGB_Hist)
+        # self.c1.grid(row=15, column=5)
         self.c1 = tk.Checkbutton(root, text='Show SRGB Hist', variable=self.show_srgb_hist_check_, offvalue=0, onvalue=1,
                                  command=self.switch_SRGB_Hist)
-        self.c1.grid(row=27, column=5)
+        self.c1.grid(row=28, column=1)
         #self.c1.select()
 
     def hdr_abdullah_button(self):
@@ -376,44 +382,51 @@ class Browser:
 
     def hdr_run_button(self):
         # Run Button
-        self.RunButton = tk.Button(root, text='Run', fg='#ffffff', bg='#999999', activebackground='#454545',
-                                   relief=tk.RAISED, width=16, padx=10, pady=5,
+        self.RunButton = tk.Button(root, text='Run', fg='#777777', activebackground='#454545',
+                                   relief=tk.RAISED, width=16, padx=8, pady=5,
                                    font=(self.widgetFont, self.widgetFontSize), command=self.runVideo)
-        self.RunButton.grid(row=5 - 4, column=5, sticky=tk.E)
+        self.RunButton.grid(row=29, column=2, rowspan=2, sticky=tk.E)
 
     def hdr_pause_button(self):
-        self.PauseButton = tk.Button(root, text='Pause', fg='#ffffff', bg='#999999', activebackground='#454545',
-                                     relief=tk.RAISED, padx=10, pady=5,
+        self.PauseButton = tk.Button(root, text='Pause', fg='#777777',activebackground='#454545',
+                                     relief=tk.RAISED, padx=8, pady=5,
                                      width=16, font=(self.widgetFont, self.widgetFontSize), command=self.pauseRun)
-        self.PauseButton.grid(row=6 - 4, column=5, sticky=tk.E)
+        self.PauseButton.grid(row=31, column=2, rowspan=2, sticky=tk.E)
 
     def hdr_reset_button(self):
         # Reset Button
-        self.RestButton = tk.Button(root, text='Reset', fg='#ffffff', bg='#999999', activebackground='#454545',
-                                    relief=tk.RAISED, padx=10, pady=5, width=16,
+        self.RestButton = tk.Button(root, text='Reset', fg='#777777', activebackground='#454545',
+                                    relief=tk.RAISED, padx=8, pady=5, width=16,
                                     font=(self.widgetFont, self.widgetFontSize), command=self.resetValues)
-        self.RestButton.grid(row=7 - 4, column=5, sticky=tk.E)
+        self.RestButton.grid(row=33, column=2,rowspan=2,  sticky=tk.E)
 
     def number_of_previous_frames_text_box(self):
         self.number_of_previous_frames = tk.IntVar()
         self.number_of_previous_frames.set(1)
-        tk.Label(root, text="# of previous frames").grid(row=31, column=5)
+        # tk.Label(root, text="# of previous frames").grid(row=31, column=5)
+        # self.e1 = tk.Entry(root, textvariable=self.number_of_previous_frames)
+        # self.e1.grid(row=32, column=5, sticky=tk.E)
+        tk.Label(root, text="# of previous frames").grid(row=31, column=1)
         self.e1 = tk.Entry(root, textvariable=self.number_of_previous_frames)
-        self.e1.grid(row=32, column=5, sticky=tk.E)
+        self.e1.grid(row=32, column=1, sticky=tk.E)
+
 
     def stepsize_limit_text_box(self):
         self.stepsize_limit = tk.IntVar()
         self.stepsize_limit.set(40)
-        tk.Label(root, text="step size limitation").grid(row=33, column=5)
+        # tk.Label(root, text="step size limitation").grid(row=33, column=5)
+        # self.e1 = tk.Entry(root, textvariable=self.stepsize_limit)
+        # self.e1.grid(row=34, column=5, sticky=tk.E)
+        tk.Label(root, text="step size limitation").grid(row=33, column=1)
         self.e1 = tk.Entry(root, textvariable=self.stepsize_limit)
-        self.e1.grid(row=34, column=5, sticky=tk.E)
+        self.e1.grid(row=34, column=1, sticky=tk.E)
 
     def regular_video_button(self):
 
-        self.VideoButton = tk.Button(root, text='Video', fg='#ffffff', bg='#999999', activebackground='#454545',
-                                     relief=tk.RAISED, padx=10, pady=5,
+        self.VideoButton = tk.Button(root, text='Video', fg='#777777', activebackground='#454545',
+                                     relief=tk.RAISED, padx=8, pady=5,
                                      width=16, font=(self.widgetFont, self.widgetFontSize), command=self.export_video)
-        self.VideoButton.grid(row=8 - 4, column=5, sticky=tk.E)
+        self.VideoButton.grid(row=29, column=3,rowspan=2,  sticky=tk.E)
 
     def outlier_slider(self):
         self.low_threshold = tk.DoubleVar()
@@ -422,7 +435,7 @@ class Browser:
                                           min_val=0, max_val=1, show_value=True, padX=17
                                           , line_s_color="#7eb1c2", digit_precision='.2f')
 
-        self.outlierSlider.grid(padx=10, pady=10, row=28, column=2, columnspan=1, sticky=tk.E)
+        self.outlierSlider.grid(padx=15, pady=15, row=28, column=2, columnspan=2, sticky=tk.E)
         # self.show_threshold()
         self.low_rate_text_box()
         self.high_rate_text_box()
@@ -430,16 +443,16 @@ class Browser:
     def low_rate_text_box(self):
         self.low_rate = tk.StringVar()
         self.low_rate.set("0.2")
-        tk.Label(root, text="below low threshold").grid(row=29, column=2)
-        self.e1 = tk.Entry(root, textvariable=self.low_rate)
-        self.e1.grid(row=30, column=2)
+        # tk.Label(root, text="below low threshold").grid(row=29, column=1)
+        # self.e1 = tk.Entry(root, textvariable=self.low_rate)
+        # self.e1.grid(row=30, column=1)
 
     def high_rate_text_box(self):
         self.high_rate = tk.StringVar()
         self.high_rate.set("0.2")
-        tk.Label(root, text="above high threshold").grid(row=31, column=2)
-        self.e1 = tk.Entry(root, textvariable=self.high_rate)
-        self.e1.grid(row=32, column=2)
+        # tk.Label(root, text="above high threshold").grid(row=29, column=2)
+        # self.e1 = tk.Entry(root, textvariable=self.high_rate)
+        # self.e1.grid(row=30, column=2)
 
     # def show_threshold(self):
     #     print(self.low_threshold.get())
@@ -447,13 +460,13 @@ class Browser:
 
     def clear_interested_areas_button(self):
         # clear the rects
-        self.ClearInterestedAreasButton = tk.Button(root, text='Clear Rectangles', fg='#ffffff', bg='#999999',
+        self.ClearInterestedAreasButton = tk.Button(root, text='Clear Rectangles', fg='#777777',
                                                     activebackground='#454545',
-                                                    relief=tk.RAISED, width=16, padx=10, pady=5,
+                                                    relief=tk.RAISED, width=16, padx=8, pady=5,
                                                     font=(self.widgetFont, self.widgetFontSize),
                                                     command=self.clear_rects,
                                                     )
-        self.ClearInterestedAreasButton.grid(row=9 - 4, column=5,
+        self.ClearInterestedAreasButton.grid(row=33, rowspan=2, column=3,
                                              sticky=tk.E)  # initial row was 26, +1 increments for all other rows
 
     def scene_select(self):
@@ -461,10 +474,10 @@ class Browser:
         self.defScene = tk.StringVar(root)
         self.defScene.set(self.scene[self.scene_index])  # default value
         self.selSceneLabel = tk.Label(root, text='Select Scene:', font=(self.widgetFont, self.widgetFontSize))
-        self.selSceneLabel.grid(row=0, column=3, sticky=tk.W)
+        self.selSceneLabel.grid(row=0, column=4, sticky=tk.W)
         self.sceneList = tk.OptionMenu(root, self.defScene, *self.scene, command=self.setValues)
         self.sceneList.config(font=(self.widgetFont, self.widgetFontSize - 2), width=15, anchor=tk.W)
-        self.sceneList.grid(row=1, column=3, sticky=tk.NE)
+        self.sceneList.grid(row=1, column=4, sticky=tk.NE)
 
     def auto_exposure_select(self):
         # Select Scene List
@@ -472,56 +485,58 @@ class Browser:
         self.defAutoExposure.set(self.auto_exposures[0])  # default value
         self.selAutoExposureLabel = tk.Label(root, text='Select AutoExposure:',
                                              font=(self.widgetFont, self.widgetFontSize))
-        self.selAutoExposureLabel.grid(row=0, column=4, sticky=tk.W)
+        self.selAutoExposureLabel.grid(row=0, column=5, sticky=tk.W)
         self.AutoExposureList = tk.OptionMenu(root, self.defAutoExposure, *self.auto_exposures,
                                               command=self.setAutoExposure)
         self.AutoExposureList.config(font=(self.widgetFont, self.widgetFontSize - 2), width=15, anchor=tk.W)
-        self.AutoExposureList.grid(row=1, column=4, sticky=tk.NE)
+        self.AutoExposureList.grid(row=1, column=5, sticky=tk.NE)
 
     def playback_text_box(self):
         # TextBox
         self.video_speed = tk.StringVar()
         # video_speed = 1
-        tk.Label(root, text="Browser Playback Speed (ms delay)").grid(row=30, column=1)
-        self.e1 = tk.Entry(root, textvariable=self.video_speed)
-        self.e1.grid(row=31, column=1)
+        # tk.Label(root, text="Browser Playback Speed (ms delay)").grid(row=28, column=1)
+        # self.e1 = tk.Entry(root, textvariable=self.video_speed)
+        # self.e1.grid(row=29, column=1)
 
     def video_fps_text(self):
         # TextBox
         self.save_video_fps = tk.StringVar()
         # video_speed = 1
-        tk.Label(root, text="Video FPS").grid(row=32, column=1)
-        self.e1 = tk.Entry(root, textvariable=self.save_video_fps)
-        self.e1.grid(row=33, column=1)
+        # tk.Label(root, text="Video FPS").grid(row=30, column=1)
+        # self.e1 = tk.Entry(root, textvariable=self.save_video_fps)
+        # self.e1.grid(row=31, column=1)
 
     def col_num_grids_text(self):
         # TextBox
         self.col_num_grids_ = tk.StringVar()
-        tk.Label(root, text=" Number of Grids per Column").grid(row=19, column=5)
+        # tk.Label(root, text=" Number of Grids per Column").grid(row=19, column=5)
         self.col_num_grids_.set('8')
-        self.e1 = tk.Entry(root, textvariable=self.col_num_grids_)
-        self.e1.grid(row=20, column=5)
+        # self.e1 = tk.Entry(root, textvariable=self.col_num_grids_)
+        # self.e1.grid(row=20, column=5)
 
     def row_num_grids_text(self):
         # TextBox
         self.row_num_grids_ = tk.StringVar()
         self.row_num_grids_.set('8')
-        tk.Label(root, text=" Number of Grids per Row").grid(row=21, column=5)
-        self.e1 = tk.Entry(root, textvariable=self.row_num_grids_)
-        self.e1.grid(row=22, column=5)
+        # tk.Label(root, text=" Number of Grids per Row").grid(row=21, column=5)
+        # self.e1 = tk.Entry(root, textvariable=self.row_num_grids_)
+        # self.e1.grid(row=22, column=5)
 
     def local_consider_outliers_checkbox(self):
         self.local_consider_outliers_check_ = tk.IntVar()
-        self.c1 = tk.Checkbutton(root, text='Consider outliers at local selection',
-                                 variable=self.local_consider_outliers_check_, offvalue=0, onvalue=1,
-                                 command=self.switch_outlier)
-        self.c1.grid(row=23, column=5)
+        self.local_consider_outliers_check_.set(0)
+        # self.c1 = tk.Checkbutton(root, text='Consider outliers at local selection',
+        #                          variable=self.local_consider_outliers_check_, offvalue=0, onvalue=1,
+        #                          command=self.switch_outlier)
+        # self.c1.grid(row=23, column=5)
 
     def high_res_checkbox(self):
         self.high_res_check = tk.IntVar()
-        self.c1 = tk.Checkbutton(root, text='High Resolution', variable=self.high_res_check, offvalue=0, onvalue=1,
-                                 command=self.switch_res)
-        self.c1.grid(row=28, column=1)
+        self.high_res_check.set(0)
+        # self.c1 = tk.Checkbutton(root, text='High Resolution', variable=self.high_res_check, offvalue=0, onvalue=1,
+        #                          command=self.switch_res)
+        # self.c1.grid(row=28, column=1)
 
     def switch_outlier(self):
         self.local_consider_outliers_check = self.local_consider_outliers_check_.get()
@@ -547,9 +562,10 @@ class Browser:
     def mertens_checkbox(self):
 
         self.mertens_check = tk.IntVar()
-        self.c1 = tk.Checkbutton(root, text=' Mertens Export', variable=self.mertens_check, offvalue=0, onvalue=1,
-                                 command=self.switch_mertens)
-        self.c1.grid(row=29, column=1)
+        self.mertens_check.set(0)
+        # self.c1 = tk.Checkbutton(root, text=' Mertens Export', variable=self.mertens_check, offvalue=0, onvalue=1,
+        #                          command=self.switch_mertens)
+        # self.c1.grid(row=29, column=1)
 
     def switch_mertens(self):
 
@@ -563,7 +579,7 @@ class Browser:
                                   label='Frame Number', font=(self.widgetFont, self.widgetFontSize),
                                   orient=tk.HORIZONTAL,
                                   length=self.widthToScale, command=self.updateSlider)
-        self.horSlider.grid(row=27, column=1, columnspan=2, sticky=tk.SW)
+        self.horSlider.grid(row=27, column=1, columnspan=3, sticky=tk.SW)
 
     def vertical_slider(self):
         # Vertical Slider
@@ -652,7 +668,7 @@ class Browser:
         self.tempImg_2 = Image.frombytes('RGB', self.fig.canvas.get_width_height(), self.fig.canvas.tostring_rgb())
         self.photo_2 = ImageTk.PhotoImage(self.tempImg_2)
         self.imagePrevlabel_2 = tk.Label(root, image=self.photo_2)
-        self.imagePrevlabel_2.grid(row=2, column=3, columnspan=2, rowspan=15, sticky=tk.NE)
+        self.imagePrevlabel_2.grid(row=2, column=4, columnspan=2, rowspan=5, sticky=tk.NE)
 
     def hist_plot(self, count1=np.zeros(101), count2=np.zeros(101)):
         font = {'family': 'monospace',
@@ -670,15 +686,15 @@ class Browser:
         if self.show_srgb_hist_check == 1:
             axes[1].set_title('srgb histogram', **font)
         else:
-            axes[1].set_title('histogram with outlier', **font)
-        axes[0].set_title('histogram without outlier', **font)
+            axes[1].set_title('raw histogram with outlier', **font)
+        axes[0].set_title('raw histogram', **font)
 
         self.fig_2.canvas.draw()
 
         self.tempImg_3 = Image.frombytes('RGB', self.fig_2.canvas.get_width_height(), self.fig_2.canvas.tostring_rgb())
         self.photo_3 = ImageTk.PhotoImage(self.tempImg_3)
         self.imagePrevlabel_3 = tk.Label(root, image=self.photo_3)
-        self.imagePrevlabel_3.grid(row=17, column=3, columnspan=2, rowspan=20, sticky=tk.NE)
+        self.imagePrevlabel_3.grid(row=17, column=4, columnspan=2, rowspan=15, sticky=tk.NE)
 
     def hist_plot_three(self, stack_size, curr_frame_mean_list, count1=np.zeros(101), count2=np.zeros(101),
                         count3=np.zeros(101), ind=0, val=0, ind2=0, val2=0):
@@ -713,7 +729,7 @@ class Browser:
                          fontsize=13,position=(70,0.2))
             else:
                 axes[1].set_title('histogram with outlier', **font)
-            axes[0].set_title('histogram without outlier', **font)
+            axes[0].set_title('raw histogram', **font)
             for i, x in enumerate(vals2):
                 if x > 0.25:
                     axes[1].text(i, 0.25, str("%.2f" % x), color=color1,
@@ -721,8 +737,8 @@ class Browser:
         else:
             color1 = 'orange'
             axes[1].bar(bins, vals3, align='center', color=color1)
-            axes[1].set_title('selected image histogram', **font)
-            axes[0].set_title('current image histogram', **font)
+            axes[1].set_title('selected image raw histogram', **font)
+            axes[0].set_title('current image raw histogram', **font)
             for i, x in enumerate(vals3):
                 if x > 0.25:
                     axes[1].text(i, 0.25, str("%.2f" % x), color=color1,
@@ -758,7 +774,7 @@ class Browser:
                                          self.fig_2.canvas.tostring_rgb())
         self.photo_3 = ImageTk.PhotoImage(self.tempImg_3)
         self.imagePrevlabel_3 = tk.Label(root, image=self.photo_3)
-        self.imagePrevlabel_3.grid(row=2, column=3, columnspan=2, rowspan=45, sticky=tk.NE)
+        self.imagePrevlabel_3.grid(row=2, column=4, columnspan=3, rowspan=33, sticky=tk.NE)
 
     def HdrMean(self):
 
@@ -1141,7 +1157,7 @@ class Browser:
             self.eV, self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.hdr_max_area_pipeline()
 
 
-        elif (self.current_auto_exposure == "Local"):
+        elif (self.current_auto_exposure == "Local1"):
             self.clear_rects_local_wo_grids()
             consider_outliers = bool(self.local_consider_outliers_check)
 
@@ -1184,7 +1200,7 @@ class Browser:
             #exposures.gradient_exposure()
             self.eV,  self.eV_original, self.weighted_means, self.hists, self.hists_before_ds_outlier = exposures.pipeline_local_without_grids()
 
-        elif (self.current_auto_exposure == "Local on moving objects"):
+        elif (self.current_auto_exposure == "Local"):
             self.clear_rects_local()
             list_local = self.list_local_without_grids_moving_objects()
 
@@ -1370,7 +1386,7 @@ class Browser:
         # self.hist_plot(count1=count1, count2=count2)
         self.hist_plot_three(count1=count1, count2=count2, count3=count3, stack_size=stack_size,
                              curr_frame_mean_list=curr_frame_mean_list, ind=ind, val=val, ind2=ind2, val2=val2)
-        if self.current_auto_exposure == "Local on moving objects":
+        if self.current_auto_exposure == "Local":
             self.draw_interested_moving_areas_per_frame()
 
     def hist_laxis(self, data, n_bins,
@@ -1410,7 +1426,7 @@ class Browser:
         current_rgb_img[:, :, 2] = current_rgb_img[:, :, 2] * 0.0722
         current_rgb_img_ = np.sum(current_rgb_img, axis=2)
 
-        if self.current_auto_exposure == "Local on moving objects" and len(self.the_moving_area_list) > 0:
+        if self.current_auto_exposure == "Local" and len(self.the_moving_area_list) > 0:
             interested_boundaries = self.the_moving_area_list[self.horSlider.get()]
             temp_img = np.ones(current_rgb_img_.shape)*(-0.01)
             h,w = current_rgb_img_.shape
@@ -1495,7 +1511,7 @@ class Browser:
 
         # self.clear_rects()
 
-        if self.current_auto_exposure == "Local":
+        if self.current_auto_exposure == "Local1":
             self.check_num_grids()
             self.colGridSelect = int(col * self.col_num_grids / self.photo.width())
             self.rowGridSelect = int(row * self.row_num_grids / self.photo.height())
@@ -1535,7 +1551,7 @@ class Browser:
             # create rectangle if not yet exist
             self.rect = self.canvas.create_rectangle(self.x, self.y, 1, 1, outline='red')
             self.current_rects_wo_grids.append(self.rect)
-        if self.current_auto_exposure == "Local on moving objects":
+        if self.current_auto_exposure == "Local":
             self.curX = self.start_x
             self.curY = self.start_y
 
@@ -1569,7 +1585,7 @@ class Browser:
             self.curY = curY
             # print("curx: "+ str(curX))
             # print("cury: "+ str(curY))
-        if self.current_auto_exposure == "Local on moving objects":
+        if self.current_auto_exposure == "Local":
             curX = self.canvas.canvasx(event.x)
             curY = self.canvas.canvasy(event.y)
 
@@ -1603,7 +1619,7 @@ class Browser:
             self.rectangles.append(rect)  # making this array to allow us to be flexible in the future
             self.current_rects.append(self.draw_rectangle(rect[0], rect[1], "green"))
             self.setAutoExposure()
-        if self.current_auto_exposure == "Local on moving objects":
+        if self.current_auto_exposure == "Local":
             # print("rect: " + str(self.moving_rectids[-1]))
             # print("start_x: " + str(self.start_x))
             # print("start_y: " + str(self.start_y))
@@ -2052,7 +2068,7 @@ class Browser:
 
 
     def make_moving_object_videos(self):
-        if self.current_auto_exposure != "Local on moving objects":
+        if self.current_auto_exposure != "Local":
             return
         self.making_a_serious_of_videos = 1
         self.scene_index = self.scene.index(self.defScene.get())
@@ -2263,8 +2279,8 @@ class Browser:
                     # print(shutterspeedind)
                     file.write(setting + "," + str(j) + "," + str(self.NEW_SCALES[shutterspeedind])+"\n")
 
-        self.current_auto_exposure = "Local on moving objects"
-        self.defAutoExposure.set("Local on moving objects")
+        self.current_auto_exposure = "Local"
+        self.defAutoExposure.set("Local")
 
 
     def make_moving_object_videos_helper(self, input_ims,target_intensity, r_percent, g_percent, downsample_rate, col_num_grids, row_num_grids,

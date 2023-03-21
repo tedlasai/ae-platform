@@ -644,6 +644,7 @@ class Exposure:
     def pipeline(self):
         downsampled_ims = self.downsample_blending_rgb_channels()
         grided_ims, grided_means = self.get_grided_ims(downsampled_ims)
+        #print(grided_means[36,15])
         weights, weights_before_ds_outlier = self.get_grids_weight_matrix(grided_means)
         flatten_weighted_ims = self.get_flatten_weighted_imgs(weights, grided_ims)
         flatten_weighted_ims_before_ds_outlier = self.get_flatten_weighted_imgs(weights_before_ds_outlier, grided_ims)
@@ -653,6 +654,20 @@ class Exposure:
         opti_inds = self.get_optimal_img_index(weighted_means)
         # opti_inds_adjusted = self.adjusted_opti_inds(opti_inds)
         opti_inds_adjusted_previous_n_frames = self.adjusted_opti_inds_v2_by_average_of_previous_n_frames(opti_inds)
+        x = downsampled_ims[64][12].flatten()
+        y = downsampled_ims[64][23].flatten()
+        z = downsampled_ims[64][30].flatten()
+        xc = self.hist_laxis(x, 100, (0, 1.00001))
+        yc = self.hist_laxis(y, 100, (0, 1.00001))
+        zc = self.hist_laxis(z, 100, (0, 1.00001))
+        import csv
+
+        a = np.array([xc, yc,zc])
+        print(a)
+
+        with open("s25_3_hists.csv", "w+") as my_csv:
+            csvWriter = csv.writer(my_csv, delimiter=',')
+            csvWriter.writerows(a)
         return opti_inds_adjusted_previous_n_frames, opti_inds, weighted_means, hists, hists_before_ds_outlier
 
     def pipeline_with_binary_salient_map_without_curve(self,salient_map):

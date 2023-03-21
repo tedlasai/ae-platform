@@ -73,9 +73,10 @@ def one_img_rbd(image):
 	#cv2.imwrite("rbdshow"+'.jpg',rbd)
 	#saliencyMap = rbd / 255
 	saliencyMap = mbd / 255
+	binary = np.where(saliencyMap<0.15,0,1)
 	#saliencyMap = cv2.resize(saliencyMap,(168,112))
 	#cv2.imwrite("rbdshow__" + '.jpg', (saliencyMap*255).astype(np.uint8))
-	return saliencyMap
+	return saliencyMap,binary
 
 def one_img(image):
 	saliency1 = cv2.saliency.StaticSaliencySpectralResidual_create()
@@ -93,6 +94,12 @@ x,y,z,l,c = gray.shape
 #map_try = one_img_rbd(gray[1,18])
 # map_ = one_img_rbd(gray[10, 15])
 # cv2.imwrite("rbdshowmbd19_10_15" + '.jpg', (map_ * 255).astype(np.uint8))
+
+image = cv2.imread("images/1P0A6504.JPG")
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+map1,map2 = one_img_rbd(image)
+cv2.imwrite("images/s18_59_15_saliency" + '.jpg', (map1 * 255).astype(np.uint8))
+cv2.imwrite("images/s18_59_15_saliency_binary" + '.jpg', (map2 * 255).astype(np.uint8))
 
 image_out = np.zeros((100,40,112,168))
 for i in range(x):
